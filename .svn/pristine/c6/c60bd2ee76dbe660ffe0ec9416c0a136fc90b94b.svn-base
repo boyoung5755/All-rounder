@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.groupware.board.event.dao.EventBoardDAO">
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        	수정자     수정내용               -->
+<!--  ==========   		=====    ==============        -->
+<!--  2023. 11. 25.     김보영     최초작성               -->
+<!--  2023. 11. 25.     김보영     등록              -->
+<!--  2023. 11. 26.     김보영     수정,삭제,목록              -->
+<!--  Copyright (c) 2023 by DDIT All right reserved -->
+
+	
+	<!-- 게시판 상세 -->
+	<select id="selectEventDetail" parameterType="BoardVO" resultType="BoardVO">
+		SELECT
+			BBS_NO
+			, BBS_SJ
+			, BBS_RGSDE
+			, EMP_CD
+			, BBS_EQUATOR
+			, BBS_LATITUDE
+			, BBS_CATEGORY
+			, BBS_CN
+			, EVENT_STTUS
+			, EVENT_BDATE
+			, EVENT_EDATE
+			, EVENT_LOC	
+		FROM BBS
+		WHERE BBS_NO = #{bbsNo}
+	
+	</select>
+	
+	
+	<!-- 게시글 수정 -->
+<!-- 	<update id=""> -->
+<!-- 		UPDATE BBS -->
+<!-- 		SET  -->
+<!-- 			BBS_RGSDE=SYSDATE  -->
+<!-- 			, BBS_SJ= #{bbsSj} -->
+<!-- 			, BBS_EQUATOR= #{bbsEquator} -->
+<!-- 			, BBS_LATITUDE= #{bbsLatitude}	 -->
+<!-- 			, BBS_CN= #{bbsCn} -->
+<!-- 			, EVENT_STTUS= #{eventSttus} -->
+<!-- 			, EVENT_BDATE= #{eventBdate} -->
+<!-- 			, EVENT_EDATE= #{eventEdate} -->
+<!-- 			, EVENT_LOC= #{eventLoc} -->
+<!-- 		WHERE BBS_NO= #{bbsNo} -->
+<!-- 	</update> -->
+	
+	<!-- 게시글 삭제 -->
+<!-- 	<delete id="" parameterType="int"> -->
+<!-- 		DELETE FROM BBS -->
+<!-- 		WHERE BBS_NO= #{bbsNo} -->
+<!-- 	</delete> -->
+	
+	<!-- 게시글 삭제시 이모지도 삭제 -->
+<!-- 	<delete id="" parameterType="int"> -->
+<!-- 		DELETE FROM BBS_EMOJI -->
+<!-- 		WHERE BBS_NO= #{bbsNo} -->
+<!-- 	</delete> -->
+	
+	<!-- 게시글 찾기 -->
+<!-- 	<select id="" parameterType="String" resultType="BoardVO"> -->
+<!-- 		SELECT  -->
+<!-- 			BBS_NO -->
+<!-- 			, BBS_SJ -->
+<!-- 			, BBS_RGSDE -->
+<!-- 			, BBS_EQUATOR -->
+<!-- 			, EMP_CD -->
+<!-- 			, BBS_EQUATOR -->
+<!-- 			, BBS_LATITUDE -->
+<!-- 			, BBS_CATEGORY -->
+<!-- 			, BBS_CN -->
+<!-- 			, EVENT_STTUS -->
+<!-- 			, EVENT_BDATE -->
+<!-- 			, EVENT_EDATE -->
+<!-- 			, EVENT_LOC -->
+<!-- 		FROM BBS -->
+<!-- 		WHERE EVENT_STTUS =#{eventSttus} -->
+<!-- 	</select> -->
+
+	<!-- 게시판 검색 -->
+	<sql id="searchFrag">
+		<if test="simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+			<choose>
+				<when test="simpleCondition.searchType eq 'bbsSj'">
+					AND INSTR(BBS_SJ, #{simpleCondition.searchWord}) > 0
+				</when>		
+			</choose>		
+		</if>
+	</sql>
+	
+	<!--페이징을 위한 게시글 갯수 -->
+	
+	<select id="selectTotalRecord" resultType="int" parameterType="PaginationInfo">
+		SELECT 
+			COUNT(*)
+		FROM BBS
+		WHERE BBS_CATEGORY='E'
+		AND EVENT_STTUS = #{detailCondition.eventSttus}
+		<include refid="searchFrag" />
+		ORDER BY BBS_RGSDE DESC
+	</select>
+
+
+	<!-- 게시글 목록 -->
+	<select id="selectEventList" resultType="BoardVO" parameterType="PaginationInfo">
+		SELECT B.*
+		FROM(
+			SELECT
+				ROWNUM rnum, A.*
+			FROM(
+				SELECT 
+					BBS_NO
+					, BBS_SJ
+					, TO_CHAR(BBS_RGSDE,'YYYY-MM-DD') AS eventRdate
+					, EMP_CD
+					, BBS_EQUATOR
+					, BBS_LATITUDE
+					, BBS_CATEGORY
+					, BBS_CN
+					, EVENT_STTUS
+					, EVENT_BDATE
+					, EVENT_EDATE
+					, EVENT_LOC
+				FROM BBS
+				WHERE BBS_CATEGORY='E'
+				AND EVENT_STTUS = #{detailCondition.eventSttus}
+				<include refid="searchFrag" />
+				ORDER BY BBS_RGSDE DESC
+				)A	
+			)B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>	
+
+
+
+	<!-- 게시글 등록 -->
+	<insert id="insertEventBoard" parameterType="BoardVO">
+		<selectKey resultType="int" order="BEFORE" keyProperty="bbsNo">
+			SELECT BOARDNO_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+	
+		INSERT INTO BBS
+		(
+			BBS_NO, BBS_SJ, BBS_RGSDE, EMP_CD
+			, BBS_EQUATOR, BBS_LATITUDE, BBS_CATEGORY
+			, BBS_CN, EVENT_STTUS
+			, EVENT_BDATE, EVENT_EDATE, EVENT_LOC
+		)
+	VALUES
+	(
+		#{bbsNo,jdbcType=NUMERIC}
+		, #{bbsSj,jdbcType=VARCHAR}
+		, SYSDATE
+		, #{empCd,jdbcType=VARCHAR}
+		, #{bbsEquator,jdbcType=VARCHAR}
+		, #{bbsLatitude,jdbcType=VARCHAR}
+		, 'E'
+		, #{bbsCn,jdbcType=VARCHAR}
+		, #{eventSttus,jdbcType=VARCHAR}
+		, #{eventBdate,jdbcType=VARCHAR}
+		, #{eventEdate,jdbcType=VARCHAR}
+		, #{eventLoc,jdbcType=VARCHAR}
+	)	
+	</insert>
+
+
+</mapper>

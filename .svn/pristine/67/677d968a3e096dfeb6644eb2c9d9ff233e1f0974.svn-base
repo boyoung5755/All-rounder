@@ -1,0 +1,35 @@
+package kr.or.ddit.vo.groupware;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+/**
+ * @author 전수진
+ * @since 2023. 11. 14.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet 
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일           수정자               수정내용
+ * --------     --------    ----------------------
+ * 2023. 11. 14.  전수진       최초작성
+ * Copyright (c) 2023 by DDIT All right reserved
+ * </pre>
+ */
+@Data
+@EqualsAndHashCode(of = "sanctnLineNo")
+public class SanctionLineVO {
+
+	private String sanctnLineNo;		// 결재라인번호 ; SL231106001
+	private String sanctnNo;			// 결재문서번호	; BM+사번+001
+	private String sanctner;			// 결재자 ; 사번
+	private String realSanctner;		// 실결재자 ; 사번
+	private Integer sanctnOrdr;			// 결재순서
+	private String sanctnSttus;			// 결재상태
+	private byte[] signImg;				// 서명이미지
+	private String sanctnOpinion;		// 결재의견
+	
+	// Has a 관계 (1:1 관계형성)
+	private SanctionVO sanction;	// 결재양식
+	
+}

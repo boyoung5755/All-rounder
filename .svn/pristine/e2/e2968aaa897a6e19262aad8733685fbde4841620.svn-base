@@ -1,0 +1,199 @@
+<%--
+* [[개정이력(Modification Information)]]
+* 수정일       수정자        수정내용
+* ----------  ---------  -----------------
+* 2023. 11. 17.      김보영        최초작성
+* Copyright (c) 2023 by DDIT All right reserved
+ --%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
+<%@ taglib uri="http://www.springframework.org/tags" prefix="spring" %>
+<%@ taglib uri="http://www.springframework.org/security/tags" prefix="security" %>        
+
+<h1 class="mb-0">프로젝트명</h1><br>
+<!-- Layout wrapper -->
+<div class="layout-wrapper layout-content-navbar">
+  <div class="layout-container">
+    <!-- Layout container -->
+    <div class="layout-page">
+      <!-- Content wrapper -->
+      <div>
+        <!-- Content -->
+
+        <!-- navbar -->
+        <div class="col-md-7 col-lg-7">
+          <ul class="nav nav-pills mb-3 nav-fill" role="tablist">
+            <li class="nav-item" role="presentation">
+              <a class="nav-link dropdown-toggle" href="javascript:void(0);" data-bs-toggle="dropdown"
+                aria-expanded="false" data-trigger="hover">
+                <i class='bx bxs-copy-alt'></i>
+                　프로젝트</a>
+              <div class="dropdown-menu">
+                <c:forEach items="${proj}" var="proj">
+                  <c:if test="${proj.proSttus == 1}">
+                    <a class="dropdown-item" href="#">${proj.proNm}</a>
+                  </c:if>
+                </c:forEach>
+              </div>
+            </li>
+            <li class="nav-item" role="presentation">
+              <a class="nav-item nav-link " href="/job/${proSn}/home">
+                <i class='bx bx-edit'></i>
+                　일감</a>
+            </li>
+            <li class="nav-item" role="presentation">
+              <a class="nav-item nav-link active" href="javascript:void(0)">
+                <i class='bx bx-calendar-exclamation'></i>
+                　이슈</a>
+            </li>
+            <li class="nav-item" role="presentation">
+              <a class="nav-item nav-link" href="/pms/gantt/${proSn}">
+                <i class='bx bx-chart'></i>
+                　간트차트</a>
+            </li>
+            <li class="nav-item" role="presentation">
+              <a class="nav-item nav-link disabled" href="javascript:void(0)">
+                <i class='bx bxs-doughnut-chart'></i>
+                　리더통계</a>
+            </li>
+          </ul>
+        </div>
+        <!-- /navbar -->
+        <!-- 이슈nav -->
+        <nav class="navbar navbar-example navbar-expand-lg bg-label-primary" style="z-index: 21">
+          <div class="container-fluid">
+            <a class="navbar-brand" href="javascript:void(0)">중요도</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-ex-14">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbar-ex-14">
+              <ul class="navbar-nav me-auto">
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="javascript:void(0);" data-bs-toggle="dropdown"
+                    aria-expanded="false">선택</a>
+                  <div class="dropdown-menu">
+                    <a class="dropdown-item" href="javascript:void(0)">높음</a>
+                    <a class="dropdown-item" href="javascript:void(0)">보통</a>
+                    <a class="dropdown-item" href="javascript:void(0)">낮음</a>
+                  </div>
+                </li>
+                <li class="nav-item dropdown" style="margin-top: 8px;">
+                  <a class="navbar-brand" href="javascript:void(0)">　의　</a>
+                </li>
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="javascript:void(0);" data-bs-toggle="dropdown"
+                    aria-expanded="false">선택</a>
+                  <div class="dropdown-menu">
+                    <a class="dropdown-item" href="javascript:void(0)">일반이슈</a>
+                    <a class="dropdown-item" href="javascript:void(0)">결함이슈</a>
+                  </div>
+                </li>
+
+              </ul>
+              <form onsubmit="return false">
+                <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal"
+                  data-bs-target="#backDropModal">등록</button>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+
+
+        <!-- 내용 -->
+
+      </div>
+      <!-- /Content -->
+    </div>
+    <!-- /Content wrapper -->
+  </div>
+  <!-- /Layout container -->
+</div>
+<!-- /Layout wrapper -->
+
+
+
+<!-- 등록 모달 -->
+
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#backDropModal">
+  Launch modal
+</button>
+
+<!-- Modal -->
+<div class="modal fade " id="backDropModal" data-bs-backdrop="static" tabindex="-1" style="display: none;"
+  aria-modal="true">
+  <div class="modal-dialog">
+    <form class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="backDropModalTitle">이슈등록</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        
+        <div class="row g-2" style="text-align: center;">
+          <div class=" mb-3 col-md-8 col-lg-8">
+          	<div class="btn-group" role="group" aria-label="Button group with nested dropdown">
+              <button type="button" class="btn btn-outline-secondary">
+                <i class="tf-icons bx bx-car">일반이슈</i>
+              </button>
+              <button type="button" class="btn btn-outline-secondary">
+                <i class="tf-icons bx bx-rocket">결함이슈</i>
+              </button>
+            </div>
+          </div>
+          <div class=" mb-3 col-md-3 col-lg-3">
+          	<div class="btn-group" role="group" aria-label="Button group with nested dropdown">
+              <div class="btn-group" role="group">
+                <button id="btnGroupDrop1" type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  중요도
+                </button>
+                <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                  <a class="dropdown-item" href="javascript:void(0);">높음</a>
+                  <a class="dropdown-item" href="javascript:void(0);">보통</a>
+                  <a class="dropdown-item" href="javascript:void(0);">낮음</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col mb-3">
+            <label for="nameBackdrop" class="fw-medium">이슈명</label>
+            <input type="text" id="nameBackdrop" class="form-control" placeholder="Enter Name">
+          </div>
+        </div>
+        <div class="row">
+          <div class="col mb-3">
+            <label for="nameBackdrop" class="fw-medium">이슈기한</label>
+            <input type="date" id="nameBackdrop" class="form-control" placeholder="Enter Name">
+          </div>
+        </div>
+        <div class="row">
+          <div class="col mb-3">
+            <label for="nameBackdrop" class="fw-medium">일감참조</label>
+          	<select name="" class="form-select" tabindex="0">
+          		<option>일감명들..</option>
+          	</select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col mb-3">
+            <label for="nameBackdrop" class="fw-medium">내용</label>
+           	<textarea class="form-control" rows="5" cols="10"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">
+          Close
+        </button>
+        <button type="button" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+

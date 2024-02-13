@@ -1,0 +1,243 @@
+package kr.or.ddit.groupware.webhard.ftp;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.net.ftp.FTP;
+import org.apache.commons.net.ftp.FTPClient;
+
+import kr.or.ddit.vo.FTPVO;
+import lombok.Data;
+
+/**
+ * @author 권도윤
+ * @since 2023. 11. 9.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * 
+ *      <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2023. 11. 9.      권도윤       최초작성
+ * Copyright (c) 2023 by DDIT All right reserved
+ *      </pre>
+ */
+@Data
+public class FTPControl {
+	// 선택된 디렉토리(폴더)에 존재하는 파일이름을 모두 불러옵니다.
+	public static List<String> ftpReadFiles(FTPVO fVO) {
+		List<String> fileNames=new ArrayList<String>();
+		String directoryLocation = fVO.getFtpFile();
+		FTPClient ftp =FTPServer.openFtpServer(fVO);
+		try {
+			ftp.changeWorkingDirectory(directoryLocation);// 파일 가져올 디렉터리 위치
+			ftp.setFileType(FTP.BINARY_FILE_TYPE); // 업로드 파일 타입 셋팅
+			for (String fileName : ftp.listNames()) {
+				fileNames.add(fileName);
+			}
+		} catch (SocketException e) {
+			System.out.println("Socket:" + e.getMessage());
+		} catch (IOException e) {
+			System.out.println("IO:" + e.getMessage());
+		} finally {
+			if (ftp != null && ftp.isConnected()) {
+				FTPServer.closeFtpServer(ftp);
+			}
+		}
+		return fileNames;
+	}
+
+	// 파일 다운
+	public static void ftpFileDownload(FTPVO fVO) {
+		FTPClient ftp =FTPServer.openFtpServer(fVO);
+		try {
+			String localFile = fVO.getLocalFile();
+			String ftpFile = fVO.getFtpFile();
+			String directoryLocation = fVO.getDirectoryLocation();
+			String downloadRoute = "C:/download/";
+			ftp.enterLocalPassiveMode(); // Passive Mode 접속일때 
+			ftp.changeWorkingDirectory(directoryLocation);// 파일 가져올 디렉터리 위치
+			ftp.setFileType(FTP.BINARY_FILE_TYPE); // 업로드 파일 타입 셋팅
+			File donwloadFile = new File(downloadRoute);
+			if(!donwloadFile.exists()) {
+				donwloadFile.mkdir();
+			}
+			File f = new File(localFile);// 로컬에 다운받아 설정할 이름
+			FileOutputStream fos = null;
+			try {
+				fos = new FileOutputStream(f);
+				
+//				System.out.println("ftpFile : "+ ftpFile);
+//				System.out.println("fos : "+ fos);
+				boolean isSuccess = ftp.retrieveFile(ftpFile, fos);// ftp서버에 존재하는 해당명의 파일을 다운로드 하여 fos에 데이터를 넣습니다.
+				if (isSuccess) {
+					System.out.println("다운로드를 성공 하였습니다.");
+				} else {
+					System.out.println("다운로드 실패하였습니다.");
+				}
+			} catch (IOException ex) {
+				System.out.println(ex.getMessage());
+			} finally {
+				if (fos != null)
+					try {
+						fos.close();
+					} catch (IOException ex) {
+					}
+			}
+		} catch (SocketException e) {
+			System.out.println("Socket:" + e.getMessage());
+		} catch (IOException e) {
+			System.out.println("IO:" + e.getMessage());
+		} finally {
+			if (ftp != null && ftp.isConnected()) {
+				FTPServer.closeFtpServer(ftp);
+			}
+		}
+	}
+
+	public static void ftpFileUpload(FTPVO fVO) {
+		FTPClient ftp =FTPServer.openFtpServer(fVO);
+		try {
+			String localFile = fVO.getLocalFile();
+			String ftpFile = fVO.getFtpFile();
+			String directoryLocation = fVO.getDirectoryLocation();
+			
+			ftp.enterLocalPassiveMode();
+			ftp.changeWorkingDirectory(directoryLocation);// 파일을 업로드할 ftp서버의 디렉토리(폴더)위치
+			ftp.setFileType(FTP.BINARY_FILE_TYPE); // 업로드 파일 타입 셋팅
+
+			File uploadFile = new File(localFile);// 업로드할 로컬 파일
+			
+//			String[] folder=ftpFile.split("/");
+//			route=ftpFile.substring(0, ftpFile.length() - folder[folder.length - 1].length());
+//			ftp.mkd(route);
+//			ftpFileUpload(fVO);
+			
+			FileInputStream fis = null;
+			try {
+				fis = new FileInputStream(uploadFile);
+				boolean isSuccess = ftp.storeFile(ftpFile, fis);// ftp서버에 존재하는 해당명의 파일을 다운로드 하여 fos에 데이터를 넣습니다.
+				if (isSuccess) {
+					System.out.println("업로드를 성공하였습니다.");
+				} else {
+					System.out.println("업로드에 실패하였습니다.");
+				}
+			} catch (IOException ex) {
+				System.out.println(ex.getMessage());
+			} finally {
+				if (fis != null)
+					try {
+						fis.close();
+					} catch (IOException ex) {
+					}
+			}
+		} catch (SocketException e) {
+			System.out.println("Socket:" + e.getMessage());
+		} catch (IOException e) {
+			System.out.println("IO:" + e.getMessage());
+		} finally {
+			if (ftp != null && ftp.isConnected()) {
+				FTPServer.closeFtpServer(ftp);
+			}
+		}
+	}
+
+	public static void ftpFileDelete(FTPVO fVO) {
+		FTPClient ftp =FTPServer.openFtpServer(fVO);
+
+		FileInputStream fis = null; // File Input Stream
+
+		String directoryLocation = fVO.getDirectoryLocation();
+		String ftpFile = fVO.getFtpFile();
+
+		try {
+    	    ftp.enterLocalPassiveMode(); // Passive Mode 접속일때 
+			ftp.changeWorkingDirectory(directoryLocation); // 작업 디렉토리 변경
+			ftp.setFileType(FTP.BINARY_FILE_TYPE); // 업로드 파일 타입 셋팅
+			try {
+				boolean isSuccess = ftp.deleteFile(ftpFile);// 파일삭제
+				if (isSuccess) {
+					System.out.println(ftpFile + "삭제하였습니다.");
+				} else {
+					System.out.println(ftpFile + "삭제하지 못 했습니다.");
+				}
+			} catch (IOException ex) {
+				System.out.println("IO Exception : " + ex.getMessage());
+			} finally {
+				if (fis != null) {
+					try {
+						fis.close(); // Stream 닫기
+					} catch (IOException ex) {
+						System.out.println("IO Exception : " + ex.getMessage());
+					}
+				}
+			}
+		} catch (IOException e) {
+			System.out.println("IO:" + e.getMessage());
+		} finally {
+			if (ftp != null && ftp.isConnected()) {
+				FTPServer.closeFtpServer(ftp);
+			}
+		}
+	}
+	
+	public static void ftpForderUpload(FTPVO fVO) {
+		FTPClient ftp =FTPServer.openFtpServer(fVO);
+		String ftpFile = fVO.getFtpFile();
+		String directoryLocation = fVO.getDirectoryLocation();
+		try {
+    	      ftp.enterLocalPassiveMode(); // Passive Mode 접속일때 
+			ftp.changeWorkingDirectory(directoryLocation); // 작업 디렉토리 변경
+			ftp.setFileType(FTP.BINARY_FILE_TYPE); // 업로드 파일 타입 셋팅
+			
+			ftp.mkd(ftpFile);
+		} catch (IOException e) {
+			System.out.println("IO:" + e.getMessage());
+		} finally {
+			if (ftp != null && ftp.isConnected()) {
+				FTPServer.closeFtpServer(ftp);
+			}
+		}
+	}
+		
+	public static void ftpFolderDelete(FTPVO fVO) {
+		FTPClient ftp =FTPServer.openFtpServer(fVO);
+		String ftpFile = fVO.getFtpFile();
+		String directoryLocation = ftpFile;
+		try {
+    	      ftp.enterLocalPassiveMode(); // Passive Mode 접속일때 
+			ftp.changeWorkingDirectory(directoryLocation); // 작업 디렉토리 변경
+			ftp.setFileType(FTP.BINARY_FILE_TYPE); // 업로드 파일 타입 셋팅
+			
+			while(ftpReadFiles(fVO).size()!=0 && ftpFile.equals(directoryLocation)) {
+				List<String> fileNames= ftpReadFiles(fVO);
+				for(String fileName : fileNames) {
+					if(fileName.contains(".")) {
+						FTPVO fVO2=new FTPVO();
+						fVO2.setFtpFile(directoryLocation+"/"+fileName);
+						ftpFileDelete(fVO2);
+					}else {
+						FTPVO fVO2=new FTPVO();
+						fVO2.setDirectoryLocation(directoryLocation+"/"+fileName);
+						ftpFolderDelete(fVO2);
+					}
+				}
+			}
+			ftp.rmd(directoryLocation);
+		} catch (IOException e) {
+			System.out.println("IO:" + e.getMessage());
+		} finally {
+			if (ftp != null && ftp.isConnected()) {
+				FTPServer.closeFtpServer(ftp);
+			}
+		}
+	}
+}

@@ -1,0 +1,9 @@
+package kr.or.ddit.groupware.reservation.confroom.controller;
+
+import org.hibernate.validator.constraints.CodePointLength;
+import org.springframework.stereotype.Controller;
+
+@Controller
+public class ConfRoomController {
+
+}

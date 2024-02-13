@@ -1,0 +1,13 @@
+package kr.or.ddit.vo;
+
+import lombok.Data;
+import lombok.ToString;
+
+@Data
+@ToString
+public class FTPVO {
+	private String directoryLocation="";
+	private String localFile;		// 작업할 로컬 파일
+	private String ftpFile;			// ftp서버에서 작업할 파일
+	private String route;
+}

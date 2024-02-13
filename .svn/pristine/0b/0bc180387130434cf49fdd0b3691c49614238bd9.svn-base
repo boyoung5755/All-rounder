@@ -1,0 +1,110 @@
+/**
+ * <pre>
+ * 
+ * </pre>
+ * @author 작성자명
+ * @since 2023. 12. 5.
+ * @version 1.0
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일        수정자       수정내용
+ * --------     --------    ----------------------
+ * 2023. 12. 5.  김보영     최초작성
+ * Copyright (c) 2023 by DDIT All right reserved
+ * </pre>
+ */
+
+//입사자 퇴사자 
+
+const selectMax = getBYData(); 
+const maxLeftAxisValue = Math.max(...selectMax['입사자'].map(item => item.cnt), ...selectMax['퇴사자'].map(item => item.cnt));
+const halfMaxLeftAxisValue = maxLeftAxisValue / 2;
+
+function formatter(value) {
+    
+    return `${value}`;
+}
+
+const optionsBY = {
+    autoSize: true,
+    container: document.getElementById('HLEmpCnt'),
+    title: {
+        text: '올해 입퇴사자 현황',
+    },
+    subtitle: {
+        text: '(2023년)',
+    },
+    series: Object.entries(getBYData()).map(([ageGroup, data]) => ({
+        data,
+        type: 'line',
+        xKey: 'year',
+        yKey: 'cnt',
+        yName: ageGroup,
+        label: {
+            enabled: true,
+            formatter: ({ value }) => formatter(value),
+        },
+        marker: {
+            size: 10,
+        },
+		tooltip: {
+            renderer: ({ datum, xKey, yKey }) => {
+                return { title: datum[xKey], content: formatter(datum[yKey])+'명' };
+            },
+        },
+    })),
+    axes: [
+        {
+            position: 'bottom',
+            type: 'category',
+            label: {
+                enabled: false,
+            },
+			line: {
+                enabled: false,
+            },
+            crosshair: {
+                enabled: true,
+            },
+        },
+        {
+            position: 'left',
+            type: 'number',
+            tick: {
+                size: 10,
+                interval: 5,
+            },
+			gridLine: {
+                enabled: false,
+            },	
+            line: {
+                width: 1,
+            },
+            label: {
+                formatter: ({ value }) => formatter(value),
+            },
+            crossLines: [
+                {
+                    type: 'line',
+                    value: halfMaxLeftAxisValue,
+                    strokeOpacity: 0.5,
+                    lineDash: [6, 4],
+                    label: {
+                        fontSize: 13,
+                        padding: 10,
+                        position: 'right',
+                    },
+                },
+            ],
+        },
+    ],
+    seriesArea: {
+        padding: {
+            left: 10,
+            bottom: 10,
+            top:30,
+        },
+    },
+};
+
+const BYchart = agCharts.AgCharts.create(optionsBY);

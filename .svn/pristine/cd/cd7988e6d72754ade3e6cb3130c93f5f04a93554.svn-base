@@ -1,0 +1,10 @@
+package kr.or.ddit.groupware.reservation.vehicle.controller;
+
+import java.time.LocalDateTime;
+
+public class dd {
+	public static void main(String[] args) {
+		LocalDateTime now = LocalDateTime.now();
+		System.out.println("now? ==> " + now);
+	}
+}

@@ -1,0 +1,42 @@
+package kr.or.ddit.alarm.service;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.alarm.dao.AlarmDAO;
+import kr.or.ddit.vo.AlarmVO;
+
+@Service
+public class AlarmServiceImpl implements AlarmService {
+
+	@Inject
+	private AlarmDAO dao;
+	
+	@Override
+	public int createAlarm(AlarmVO alarm) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public List<AlarmVO> retrieveAlarmList(String receiver) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public int modifyReadAlarm(String receiver) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int removeReadAlarms(String receiver) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+}

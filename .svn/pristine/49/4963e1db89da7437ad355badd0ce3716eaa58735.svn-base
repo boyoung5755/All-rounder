@@ -1,0 +1,10 @@
+package kr.or.ddit.groupware.reservation.vehicle.dao;
+
+import org.apache.ibatis.annotations.Mapper;
+
+@Mapper
+public class VehicelDAO {
+	
+	
+	
+}

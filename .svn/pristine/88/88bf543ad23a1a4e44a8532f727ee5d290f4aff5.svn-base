@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2023. 11. 16  전수진     최초작성               -->
+<!--  2023. 11. 22  전수진     insert selectKey변경, 결재문서 상세조회   -->
+<!--  2023. 11. 23  전수진     결재문서 삭제, 수정   -->
+<!--  Copyright (c) 2023 by DDIT All right reserved -->
+
+<mapper namespace="kr.or.ddit.groupware.sanction.dao.SanctionDAO">
+
+	<!-- 결재문서 등록 -->
+	<insert id="insertSanction" parameterType="SanctionVO">
+		<selectKey order="BEFORE" keyProperty="sanctnNo" resultType="String" >
+			SELECT 'DOC'||TO_CHAR(SYSDATE,'YYMMDD')||LPAD(NVL(MAX(SUBSTR(SANCTN_NO,10)),0)+1,3,'0')
+			FROM SANCTION
+			WHERE SUBSTR(SANCTN_NO,4,6) = TO_CHAR(SYSDATE,'YYMMDD')
+		</selectKey>
+			INSERT INTO SANCTION (
+			    SANCTN_NO		/* 결재문서번호 */
+			    , DRAFTER		/* 기안자 */
+			    , FORM_NO 		/* 결재양식번호 */
+			    , SANCTN_SJ		/* 결재문서제목 */
+			    , SANCTN_DATE	/* 결재문서 작성일자 */
+			    , SANCTN_STTUS 	/* 결재문서 상태 (1 결재대기)*/
+			    , SANCTN_RCYER 	/* 결재수신자 */
+			    , SANCTN_SOURC 	/* 결재문서 저장소스 */
+			) VALUES (
+				#{sanctnNo}
+			    , #{drafter}
+			    , #{formNo}
+			    , #{sanctnSj}
+			    , SYSDATE
+			    , '1'
+			    , #{sanctnRcyer}
+			    , #{sanctnSourc}
+			)
+	</insert>
+
+	<!-- 결재문서 Recode 카운트(DRAFTER가 null이 아니면 기안자의 Recode 카운트) -->
+	<select id="selectTotalRecord" parameterType="PaginationInfo" resultType="int">
+        SELECT COUNT(*)
+		FROM SANCTION
+		<if test="drafter != null">
+		    DRAFTER = #{drafter}
+		</if>
+	</select>
+	
+	<!-- 결재문서 리스트 조회(DRAFTER가 null이 아니면 기안자의 리스트 조회) -->
+	<select id="selectSanctionList" parameterType="PaginationInfo" resultType="SanctionVO">
+		WITH SANCTIONVIEW AS (
+		    SELECT A.*, ROWNUM RNUM
+		    FROM (
+		        SELECT
+		            S.SANCTN_NO 		/* 결재문서번호 */
+		            , S.DRAFTER 		/* 기안자 */
+		            , FN_GET_EMP_NAME(S.DRAFTER) DRAFTER_NM 			/* 기안자 명*/
+		            , FN_GET_DEPT_NAME(S.DRAFTER) DRAFTER_DEPT_NAME 	/* 기안자 부서 명*/
+		            , S.FORM_NO 		/* 결재양식번호 */
+		            , F.FORM_NM 		/* 결재양식이름 */
+		            , S.SANCTN_SJ 		/* 결재문서제목 */
+		            , S.SANCTN_STTUS	/* 결재문서상태 */
+		            , FN_GET_COMMON_CODE_SJ(S.SANCTN_STTUS) SANCTN_STTUS_NM 		/* 결재상태명 */
+		            ,TO_CHAR(TO_DATE(S.SANCTN_DATE, 'RR/MM/DD'), 'YYYY-MM-DD')	SANCTN_DATE	/* 결재문서작성일자 */
+		        FROM
+		            SANCTION S LEFT OUTER JOIN SANCTION_FORM F ON (S.FORM_NO = F.FORM_NO)
+		        WHERE
+                <if test="drafter != null">
+                    DRAFTER = #{drafter}
+                </if>
+		        ORDER BY S.SANCTN_NO DESC
+		    )A
+		)
+		SELECT * 
+		FROM SANCTIONVIEW
+		<![CDATA[
+			WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}
+		]]>
+	</select>
+
+
+	<!-- 결재문서 상세조회 -->
+	<resultMap type="SanctionVO" id="sanctionMap" autoMapping="true">
+		<id property="sanctnNo" column="SANCTN_NO" />
+		<association property="sanctionForm" javaType="SanctionFormVO" autoMapping="true" />
+		<collection property="attachList" ofType="SanctionAttachVO" autoMapping="true" />
+		<collection property="lineList" resultMap="SanctionLineMap"></collection>
+	</resultMap>
+	<resultMap type="SanctionLineVO" id="SanctionLineMap">
+		<result property="signImg" column="SIGN_IMG" />
+		<result property="sanctnerEndyn" column="SANCTNER_ENDYN" />
+		<result property="sanctnlineSttus" column="SANCTNLINE_STTUS" />
+		<result property="sanctnLineNo" column="SANCTN_LINE_NO" />
+		<result property="sanctnNo" column="SANCTN_NO" />
+		<result property="sanctner" column="SANCTNER" />
+		<result property="realSanctner" column="REAL_SANCTNER" />
+		<result property="sanctnOrdr" column="SANCTN_ORDR" />
+		<result property="sanctnOpinion" column="SANCTN_OPINION" />
+		<result property="sanctnerNm" column="SANCTNER_NM" />
+		<result property="sanctnerRankNm" column="SANCTNER_RANK_NM" />
+		<result property="sanctnerDeptName" column="SANCTNER_DEPT_NAME" />
+	</resultMap>
+	<select id="selectSanction" parameterType="String" resultMap="sanctionMap">
+		SELECT
+	        S.SANCTN_NO 			/* 결재문서번호 */
+	        , S.DRAFTER 										/* 기안자 */
+	        , FN_GET_EMP_NAME(S.DRAFTER) DRAFTER_NM 			/* 기안자 명*/
+	        , FN_GET_EMP_RANK_NM(S.DRAFTER) DRAFTER_RANK_NM 	/* 기안자 직급 명*/
+            , FN_GET_DEPT_NAME(S.DRAFTER) DRAFTER_DEPT_NAME 	/* 기안자 부서 명*/
+	        , S.FORM_NO 			/* 양식번호 */
+	        , S.SANCTN_SJ 			/* 결재문서제목 */
+	        , TO_CHAR(TO_DATE(S.SANCTN_DATE, 'RR/MM/DD'), 'YYYY-MM-DD')	SANCTN_DATE	/* 결재문서작성일자 */
+	        , S.SANCTN_STTUS 		/* 결재상태 */
+	        , S.SANCTN_RCYER 		/* 수신자 */
+	        , FN_GET_EMP_NAME(S.SANCTN_RCYER) SANCTN_RCYER_NM 			/*수신자 명*/
+	        , FN_GET_EMP_RANK_NM(S.SANCTN_RCYER) SANCTN_RCYER_RANK_NM 	/*수신자 직급 명*/
+            , FN_GET_DEPT_NAME(S.SANCTN_RCYER) SANCTN_RCYER_DEPT_NAME 	/*수신자 부서 명*/
+	        , S.SANCTN_SOURC 		/* 결재내용 */
+	        , A.ATTACH_NO 			/* 결재첨부파일번호 */
+	        , A.SANCTN_NO			/* 결재문서번호 */
+	        , A.ATTACH_ORIGIN_NM 	/* 파일원본이름 */
+	        , A.ATTACH_SAVE_NM 		/* 파일저장이름 */
+	        , A.ATTACH_MIME 		/* 파일유형 */
+	        , A.ATTACH_SIZE 		/* 파일크기 */
+	        , A.ATTACH_FANCYSIZE 	/* 팬시크기 */
+		    , L.SANCTN_LINE_NO 		/* 결재라인번호 */
+	        , L.SANCTN_NO 			/* 결재문서번호 */
+	        , L.SANCTNER 			/* 결재자 */
+	        , FN_GET_EMP_NAME(L.SANCTNER) SANCTNER_NM 			/* 결재자 명*/
+	        , FN_GET_EMP_RANK_NM(L.SANCTNER) SANCTNER_RANK_NM 	/* 결재자 직급 명*/
+            , FN_GET_DEPT_NAME(L.SANCTNER) SANCTNER_DEPT_NAME 	/* 결재자 부서 명*/
+	        , L.REAL_SANCTNER 		/* 실결재자 */
+	        , L.SANCTN_ORDR 		/* 결재순서 */
+	        , L.SANCTNLINE_STTUS 	/* 결재상태 */
+	        , L.SANCTN_OPINION 		/* 결재의견 */
+ 	        , L.SIGN_IMG 			/* 서명이미지 */
+	        , L.SANCTNER_ENDYN 		/* 최종결재자여부 */
+	        , F.FORM_NO 			/* 양식번호 */
+	        , F.FORM_NM 			/* 양식이름 */
+	        , F.FORM_SOURC 			/* 양식입력소스 */
+	        , F.FORM_SAMPLE 		/* 양식Sample소스 */
+	    FROM
+	        SANCTION S LEFT OUTER JOIN SANCTION_ATTACH A ON(S.SANCTN_NO = A.SANCTN_NO)
+	        LEFT OUTER JOIN SANCTION_FORM F ON(S.FORM_NO = F.FORM_NO)
+	        LEFT OUTER JOIN SANCTION_LINE L ON(S.SANCTN_NO = L.SANCTN_NO)
+	    WHERE
+	        S.SANCTN_NO= #{sanctnNo}
+	    ORDER BY A.ATTACH_NO ASC, L.SANCTN_ORDR ASC
+	</select>
+	
+	<!-- 결재문서 수정 -->
+	<update id="updateSanction" parameterType="SanctionVO">
+		UPDATE SANCTION
+		SET
+		    SANCTN_SJ = #{sanctnSj}			/* 결재문서제목 */
+		    , SANCTN_RCYER = #{sanctnRcyer}	/* 결재수신자 */
+		    , SANCTN_SOURC = #{sanctnSourc} /* 결재내용 */
+		WHERE
+		    SANCTN_NO = #{sanctnNo}
+	</update>
+	
+	<!-- 결재문서 삭제 -->
+	<delete id="deleteSanction" parameterType="String">
+		DELETE FROM SANCTION
+		WHERE
+		        SANCTN_NO = #{sanctnNo}
+	</delete>
+	
+	
+	
+
+	
+	
+</mapper>

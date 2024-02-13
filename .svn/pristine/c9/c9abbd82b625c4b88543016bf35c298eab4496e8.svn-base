@@ -1,0 +1,84 @@
+package kr.or.ddit.admin.adproject.service;
+
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.admin.adproject.dao.AdminProjectDAO;
+import kr.or.ddit.common.exception.BoardNotFoundException;
+import kr.or.ddit.vo.PaginationInfo;
+import kr.or.ddit.vo.pms.ProjectVO;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+ 
+/**
+ * @author 작성자명
+ * @since Nov 21, 2023
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet 
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * Nov 21, 2023      송석원       최초작성
+ * Copyright (c) 2023 by DDIT All right reserved
+ * </pre>
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor 
+public class AdminProjectServiceImpl  implements AdminProjectService{
+ 
+	private final AdminProjectDAO adprojDAO;
+	
+	
+	@Override
+	public void createAdminProject(ProjectVO proj) {
+		adprojDAO.insertAdminProject(proj);
+	}
+
+	@Override
+	public ProjectVO retrieveAdminProject(int proSn) {
+				ProjectVO proj = adprojDAO.selectAdminProject(proSn); 
+				 
+				if(proj==null) // 조회한 글이 없을경우
+					throw new BoardNotFoundException(HttpStatus.NOT_FOUND, String.format("%s 해당 게시글이 없음", proSn));
+				
+				
+				return proj;
+	}
+
+	@Override
+	public List<ProjectVO> retrieveAdminProjectList(PaginationInfo<ProjectVO> paging) {
+		int totalRecord = adprojDAO.selectTotalRecord(paging);
+		paging.setTotalRecord(totalRecord);
+		List<ProjectVO> dataList = adprojDAO.selectAdminProjectList(paging);
+		paging.setDataList(dataList);
+		
+		return dataList;
+	}
+
+	@Override
+	public void modifyAdminProject(ProjectVO proj) {
+		adprojDAO.updateAdminProject(proj);
+		   
+	}
+
+	/**
+	 *상위 카운트
+	 */
+	@Override
+	public String upperCountJop(String proSn) {
+		return adprojDAO.upperCountJop(proSn);
+	}
+	
+	/**
+	 *하위 카운트 
+	 */
+	@Override
+	public String lowCountJob(String proSn) {
+		return adprojDAO.lowCountJob(proSn); 
+	}
+
+}

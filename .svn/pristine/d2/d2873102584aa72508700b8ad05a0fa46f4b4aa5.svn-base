@@ -1,0 +1,229 @@
+package kr.or.ddit.groupware.sanction.service;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.apache.commons.io.FileUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import kr.or.ddit.common.enumpkg.ServiceResult;
+import kr.or.ddit.common.exception.BoardNotFoundException;
+import kr.or.ddit.groupware.sanction.dao.SanctionAttachDAO;
+import kr.or.ddit.groupware.sanction.dao.SanctionDAO;
+import kr.or.ddit.groupware.sanction.dao.SanctionLineDAO;
+import kr.or.ddit.vo.PaginationInfo;
+import kr.or.ddit.vo.groupware.SanctionAttachVO;
+import kr.or.ddit.vo.groupware.SanctionLineVO;
+import kr.or.ddit.vo.groupware.SanctionVO;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * @author 전수진
+ * @since 2023. 11. 16.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet 
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일           수정자               수정내용
+ * --------     --------    ----------------------
+ * 2023. 11. 16.  전수진       최초작성
+ * 2023. 11. 21.  전수진       결재문서 첨부파일 관리, 결재라인 추가
+ * 2023. 11. 24.  전수진       결재문서 list 구현 추가
+ * Copyright (c) 2023 by DDIT All right reserved
+ * </pre>
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class SanctionServiceImpl implements SanctionService {
+	
+	private final SanctionDAO dao;
+	private final SanctionAttachDAO attachDAO;
+	private final SanctionLineDAO lineDAO;
+	
+	@Value("#{appInfo.sanctionFiles}")
+	private Resource sanctionFiles;
+	
+	private void processSanctionFiles(SanctionVO sanctionVO) {
+		List<SanctionAttachVO> attachList = sanctionVO.getAttachList();
+		if(attachList!=null) {
+			attachList.forEach((al)->{
+				try {
+					al.setSanctnNo(sanctionVO.getSanctnNo());
+					attachDAO.insertSanctionAttach(al);
+					System.out.println(sanctionFiles.getFile());
+					al.saveTo(sanctionFiles.getFile());
+				} catch(IOException e) {
+					throw new RuntimeException(e);
+				}
+			});
+		}
+	} 
+
+	@Override
+	public List<SanctionVO> retrieveSanctionList(PaginationInfo<SanctionVO> paging) {
+		// 검색조건에 맞는 결재문서 리스트 조회(관리자, 결재자)
+		// drafter가 null이 아니면 결재자의 list
+		return dao.selectSanctionList(paging);
+	}
+
+	@Override
+	public SanctionVO retrieveSanction(String sanctnNo) {
+		// 결재문서 상세 조회
+		SanctionVO sanction = dao.selectSanction(sanctnNo);
+		if (sanction==null) 
+			throw new BoardNotFoundException(HttpStatus.NOT_FOUND, String.format("%s 해당 게시글이 없음", sanctnNo));
+		
+		return sanction;
+	}
+
+	@Transactional
+	@Override
+	public ServiceResult createSanction(SanctionVO sanctionVO) {
+		// 결재문서 등록(상신) 
+		int cnt  = dao.insertSanction(sanctionVO);
+		ServiceResult result = null;
+		if(cnt > 0) {
+			// 결재첨부파일 등록
+			processSanctionFiles(sanctionVO);
+			
+			// 결재라인추가
+			List<SanctionLineVO> lineList = sanctionVO.getLineList();
+			if(lineList!=null) {
+				int size = lineList.size();
+				for(SanctionLineVO vo : lineList) {
+					vo.setSanctnlineSttus("I");
+					if(vo.getSanctnOrdr()==size) {
+						vo.setSanctnerEndyn("Y");
+					}
+					vo.setSanctnNo(sanctionVO.getSanctnNo());
+					log.info("vo : "+vo);
+					lineDAO.insertSanctionLine(vo);
+				}
+			}
+			result = ServiceResult.OK;
+		} else {
+			result = ServiceResult.FAIL;
+		}
+		return result;
+	}
+
+	@Transactional
+	@Override
+	public ServiceResult modifySanction(SanctionVO sanctionVO) {
+		// 결재문서 수정
+		ServiceResult result = null;
+		SanctionVO sanction = dao.selectSanction(sanctionVO.getSanctnNo());
+
+		if(sanctionVO.getSanctnSttus().equals("0") || sanctionVO.getSanctnSttus().equals("1")) {
+			int cnt  = dao.updateSanction(sanctionVO);
+			if(cnt>0) {
+				List<SanctionAttachVO> attachList = sanctionVO.getAttachList();
+				if(attachList!=null && attachList.size() > 0) {
+					processDeleteAttach(sanctionVO.getSanctnNo());
+					// 결재첨부파일 처리
+					processSanctionFiles(sanctionVO);
+				}
+				
+				List<SanctionLineVO> lineList = sanctionVO.getLineList();
+				if(lineList!=null && lineList.size()>0) {
+					// 결재라인 삭제
+					List<SanctionLineVO> savedList = sanction.getLineList();
+					for(SanctionLineVO vo : savedList) {
+						String sanctnLineNo  = vo.getSanctnLineNo();
+						log.info("sanctnLineNo",sanctnLineNo);
+						lineDAO.deleteSanctionLine(sanctnLineNo);
+					}
+					// 결재라인 생성
+					int size = lineList.size();
+					for(SanctionLineVO vo : lineList) {
+						vo.setSanctnlineSttus("I");
+						if(vo.getSanctnOrdr()==size) {
+							vo.setSanctnerEndyn("Y");
+						}
+						vo.setSanctnNo(sanctionVO.getSanctnNo());
+						log.info("vo : "+vo);
+						lineDAO.insertSanctionLine(vo);
+					}
+				}
+				result = ServiceResult.OK;
+			} else {
+				result = ServiceResult.FAIL;
+			}
+		} else {
+			result = ServiceResult.CANNOTPROCEED;
+		} 
+		return result;
+	}
+
+
+	@Override
+	public SanctionAttachVO retrieveSanctionAttach(int attachNo) {
+		// 결재문서 첨부파일 조회
+		SanctionAttachVO attach = attachDAO.selectSanctionAttach(attachNo);
+		if(attach==null)
+			throw new BoardNotFoundException(HttpStatus.NOT_FOUND, String.format("%s 해당 파일이 없음", attachNo));
+		
+		return attach;
+	}
+	
+	private void processDeleteAttach(String sanctnNo) {
+		SanctionVO savedSanction = dao.selectSanction(sanctnNo);
+		if(savedSanction != null && savedSanction.getAttachList()!=null) {
+			savedSanction.getAttachList().forEach((al)->{
+				log.info("savedSanction al{}",al);
+				if(al.getAttachSaveNm()!=null) {
+					String saveName = al.getAttachSaveNm();
+					attachDAO.deleteBoardAttach(al.getAttachNo());
+					try {
+						FileUtils.deleteQuietly(new File(sanctionFiles.getFile(), saveName));
+					} catch(IOException e) {
+						throw new RuntimeException(e);
+					}
+				}
+			});
+		} 
+	}
+
+	@Transactional
+	@Override
+	public ServiceResult removeSanction(String sanctnNo) {
+		// 결재문서 삭제
+		ServiceResult result = null;
+		SanctionVO sanctionVO = dao.selectSanction(sanctnNo);
+		log.info("sanctionVO.getSanctnSttus=============",sanctionVO.getSanctnSttus());
+		if(sanctionVO.getSanctnSttus().equals("0") || sanctionVO.getSanctnSttus().equals("1")) {
+			
+			//결재라인 삭제
+			List<SanctionLineVO> lineList = sanctionVO.getLineList();
+			if(lineList!=null) {
+				for(SanctionLineVO vo : lineList) {
+					String sanctnLineNo  = vo.getSanctnLineNo();
+					lineDAO.deleteSanctionLine(sanctnLineNo);
+				}
+			}
+			
+			// 첨부파일 삭제
+			processDeleteAttach(sanctionVO.getSanctnNo());
+			
+			int cnt  = dao.deleteSanction(sanctionVO);
+			if(cnt>0) {
+				result = ServiceResult.OK;
+			} else {
+				result = ServiceResult.FAIL;
+			}
+		} else {
+			result = ServiceResult.CANNOTPROCEED;
+		} 
+		return result;
+	}
+
+}

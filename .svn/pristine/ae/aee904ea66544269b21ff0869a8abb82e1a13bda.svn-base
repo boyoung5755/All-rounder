@@ -1,0 +1,115 @@
+package kr.or.ddit.groupware.sanction.service;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import kr.or.ddit.common.enumpkg.ServiceResult;
+import kr.or.ddit.groupware.sanction.dao.BookmarkAndProxyDAO;
+import kr.or.ddit.vo.groupware.BookmarkDetailVO;
+import kr.or.ddit.vo.groupware.BookmarkVO;
+import kr.or.ddit.vo.groupware.SanctionByProxyVO;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * @author 전수진
+ * @since 2023. 11. 17.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet 
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일           수정자               수정내용
+ * --------     --------    ----------------------
+ * 2023. 11. 17.  전수진       최초작성
+ * 2023. 11. 18.  전수진       즐겨찾기 리스트, 상세보기 구현 
+ * Copyright (c) 2023 by DDIT All right reserved
+ * </pre>
+ */
+@Slf4j
+@Service
+public class BookmarkAndProxyServiceImpl implements BookmarkAndProxyService {
+	
+	@Inject
+	private BookmarkAndProxyDAO dao;
+
+
+	@Transactional
+	@Override
+	public ServiceResult createBookmark(BookmarkVO bookmark) {
+		
+		// 즐겨찾기 추가
+		int cnt = dao.insertBookmark(bookmark);
+		ServiceResult result = null;
+
+		if(cnt > 0) {
+			List<BookmarkDetailVO> sanctnerList = bookmark.getDetailList();
+			if(sanctnerList!=null) {
+				int sanctnOrdrCnt = 1;
+				
+				// 즐겨찾기상세에 즐겨찾기 추가
+				for(BookmarkDetailVO vo : sanctnerList) {
+					vo.setBkmkNo(bookmark.getBkmkNo());
+					vo.setSanctnOrdr(sanctnOrdrCnt++);
+					
+					dao.insertBookmarkDetail(vo);
+				}
+			}
+			result = ServiceResult.OK;
+		} else {
+			result = ServiceResult.FAIL;
+		}
+		return result;
+	}
+
+	@Override
+	public int removeBookmark(String bkmkNo) {
+		// 즐겨찾기 삭제, 디테일도 같이 삭제
+		return 0;
+	}
+
+	@Override
+	public List<BookmarkVO> retrieveBookmarkList(String bkmkOwner) {
+		// 소유자의 즐겨찾기 리스트 출력
+		return dao.selectBookmarkList(bkmkOwner);
+	}
+
+	@Override
+	public List<BookmarkDetailVO> retrieveBookmarkDetailList(String bkmkNo) {
+		// 즐겨찾기 번호로 결재자리스트 조회
+		return dao.selectBookmarkDetailList(bkmkNo);
+	}
+
+	@Override
+	public ServiceResult createSanctionProxy(SanctionByProxyVO proxy) {
+		// 대결권 설정 구현
+		proxy.setPrxsanctnYn("Y");
+		
+		String inputCnfer = proxy.getPrxsanctnCnfer();
+		String inputStartDate = proxy.getAlwncDate();
+		String inputEndDate = proxy.getExtshDate();
+		log.info("inputCnfer==={}",inputCnfer);
+		log.info("inputStartDate==={}",inputStartDate);
+		log.info("inputEndDate==={}",inputEndDate);
+		
+		SanctionByProxyVO savedProxy =  dao.selectProxyOne(proxy);
+		
+		ServiceResult result = null;
+		//대결권 등록
+		if(savedProxy==null) {
+			int cnt = dao.insertSanctionProxy(proxy);
+			if(cnt > 0) {
+				result = ServiceResult.OK;
+			} else {
+				result = ServiceResult.FAIL;
+			}
+		} else {
+			result = ServiceResult.PKDUPLICATED;
+		}
+		
+		return result;
+	}
+
+}

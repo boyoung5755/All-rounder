@@ -1,0 +1,25 @@
+package kr.or.ddit.groupware.attendance.dao;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import kr.or.ddit.vo.PaginationInfo;
+import kr.or.ddit.vo.groupware.AttendanceLogVO;
+import kr.or.ddit.vo.groupware.AttendanceVO;
+import kr.or.ddit.vo.groupware.EmployeeVO;
+
+@Mapper
+public interface AttendanceDAO {
+
+	void attendanceInsert(AttendanceLogVO alVO);
+
+	AttendanceVO selectAttendance(String empCd);
+
+	List<AttendanceLogVO> attendanceLogList(AttendanceLogVO alVO);
+
+	void commute(AttendanceVO aVO);
+	
+	List<EmployeeVO> attendanceList();
+
+}

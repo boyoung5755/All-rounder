@@ -1,0 +1,354 @@
+<%--
+* [[개정이력(Modification Information)]]
+* 수정일       수정자        수정내용
+* ----------  ---------  -----------------
+* 2023. 11. 17.      김보영        최초작성
+* 2023. 11. 24.      김보영        생성, 리스트,칸반보드
+* Copyright (c) 2023 by DDIT All right reserved
+ --%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
+<%@ taglib uri="http://www.springframework.org/tags" prefix="spring" %>
+<%@ taglib uri="http://www.springframework.org/security/tags" prefix="security" %>        
+
+
+<h1 class="mb-0">프로젝트명</h1><br>
+<!-- Layout wrapper -->
+<div class="layout-wrapper layout-content-navbar">
+  <div class="layout-container">
+    <!-- Layout container -->
+    <div class="layout-page">
+      <!-- Content wrapper -->
+      <div>
+        <!-- Content -->
+
+        <!-- navbar -->
+        <div class="col-md-7 col-lg-7">
+          <ul class="nav nav-pills mb-3 nav-fill" role="tablist">
+            <li class="nav-item" role="presentation">
+              <a class="nav-link dropdown-toggle" href="javascript:void(0);" data-bs-toggle="dropdown"
+                aria-expanded="false" data-trigger="hover">
+                <i class='bx bxs-copy-alt'></i>
+                　프로젝트</a>
+              <div class="dropdown-menu">
+                <c:forEach items="${proj}" var="proj">
+                  <c:if test="${proj.proSttus == 1}">
+                    <a class="dropdown-item" href="/issue/${proj.proSn}/home">${proj.proNm}</a>
+                  </c:if>
+                </c:forEach>
+              </div>
+            </li>
+            <li class="nav-item" role="presentation">
+              <a class="nav-item nav-link " href="/job/${proSn}/home">
+                <i class='bx bx-edit'></i>
+                　일감</a>
+            </li>
+            <li class="nav-item" role="presentation">
+              <a class="nav-item nav-link active" href="javascript:void(0)">
+                <i class='bx bx-calendar-exclamation'></i>
+                　이슈</a>
+            </li>
+            <li class="nav-item" role="presentation">
+              <a class="nav-item nav-link" href="/pms/gantt/${proSn}">
+                <i class='bx bx-chart'></i>
+                　간트차트</a>
+            </li>
+            <li class="nav-item" role="presentation">
+              <a class="nav-item nav-link disabled" href="javascript:void(0)">
+                <i class='bx bxs-doughnut-chart'></i>
+                　리더통계</a>
+            </li>
+          </ul>
+        </div>
+        <!-- /navbar -->
+        <!-- 이슈nav -->
+        <nav class="navbar navbar-example navbar-expand-lg bg-light">
+          <div class="container-fluid">
+            <a class="navbar-brand">중요도</a>
+            <div class="collapse navbar-collapse" id="navbar-ex-3">
+              <form id="selectOptionIssue">
+              	<security:csrfInput />
+                <div class="navbar-nav me-auto">
+                  <select id="searchIssueImp" name="issueImp"  class="form-select" required style="background: none; border: none; width: 105px">
+                    <option value="">전체</option>
+                    <option value="1" >긴급</option>
+                    <option value="2">중간</option>
+                    <option value="3" >낮음</option>
+                  </select>
+                  <a class="nav-item nav-link" href="javascript:void(0)">의</a>
+                  <select  id="searchIssueSe" name="issueSe" class="form-select" required style="background: none; border: none;">
+                    <option value="" >전체</option>
+                    <option value="1" >일반이슈</option>
+                    <option value="2" >결함이슈</option>
+                  </select>
+                  <button id="searchBtn" type="button" class="input-group-text" style="background: none; border: none;" onclick="fn_selectIssue()">
+                  <i class="tf-icons bx bx-search"></i>찾기</button>
+                  <button id="resetBtn"  type="button" class="input-group-text" style="background: none; border: none;" >
+                  <i class='bx bx-revision'></i>초기화</button>
+                </div>
+              </form>
+
+              <!-- Use ms-auto class to push the button to the right -->
+              <form class="ms-auto" onsubmit="return false">
+                <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal"
+                  data-bs-target="#backDropModal">등록</button>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+
+        <!-- 이슈 칸반 -->
+        <div class="row mt-3">
+          <div class="dropzone col-md-6 col-xl-4" data-issuesttus="1" data-add-bo="border-primary"
+            style="height: 1000px;">
+            <div class="card shadow-none bg-transparent  mb-3">
+              <div class="card-body">
+                <h4 class="card-title">진행</h4>
+                <!-- 이곳에 이슈들 -->
+                <div id="inProgressIssue" class="issueBox">
+
+                </div>
+                <!-- /이곳에 이슈들 -->
+              </div>
+            </div>
+          </div>
+          <div class=" dropzone col-md-6 col-xl-4" data-issuesttus="2" data-add-bo="border-warning"
+            style="height: 1000px;">
+            <div class="card shadow-none bg-transparent  mb-3">
+              <div class="card-body">
+                <h4 class="card-title">보류</h4>
+                <!-- 이곳에 이슈들 -->
+                <div id="onHoldIssue" class="issueBox">
+
+                </div>
+                <!-- /이곳에 이슈들 -->
+              </div>
+            </div>
+          </div>
+          <div class=" dropzone col-md-6 col-xl-4" data-issuesttus="3" data-add-bo="border-success"
+            style="height: 1000px;">
+            <div class="card shadow-none bg-transparent  mb-3">
+              <div class="card-body">
+                <h4 class="card-title">완료</h4>
+                <!-- 이곳에 이슈들 -->
+                <div id="completedIssue" class="issueBox">
+
+                </div>
+                <!-- /이곳에 이슈들 -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /Content -->
+    </div>
+    <!-- /Content wrapper -->
+  </div>
+  <!-- /Layout container -->
+</div>
+<!-- /Layout wrapper -->
+
+
+
+<!-- 등록 모달 -->
+<!-- Modal -->
+<div class="modal fade " id="backDropModal" data-bs-backdrop="static" tabindex="-1" style="display: none;"
+  aria-modal="true">
+  <div class="modal-dialog">
+    <form class="modal-content" id="issueInsertForm">
+      <security:csrfInput />
+      <input type="hidden" value="${proSn}" id="proSn">
+      <div class="modal-header">
+        <h5 class="modal-title" id="backDropModalTitle">이슈등록</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+
+        <div class="row g-2" style="text-align: center;">
+          <div class=" mb-3 col-md-8 col-lg-8">
+            <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
+              <input type="hidden" id="issueSe" name="issueSe" value="" />
+              <button type="button"  class="btn-issueSe GenIssue btn btn-outline-secondary" onclick="fn_issueSe('1')"
+                style="border-bottom-left-radius: 0.375rem;border-top-left-radius: 0.375rem;">
+                <i class="tf-icons bx bx-car">일반이슈</i>
+              </button>
+              <button type="button" class="btn-issueSe bugIssue btn btn-outline-secondary" onclick="fn_issueSe('2')">
+                <i class="tf-icons bx bx-rocket">결함이슈</i>
+              </button>
+            </div>
+          </div>
+          <div class=" mb-3 col-md-3 col-lg-3">
+            <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
+              <div class="btn-group" role="group">
+                <select name="issueImp" id="issueImp" class="form-select" required>
+                  <option value="1">긴급</option>
+                  <option value="2" selected>중간</option>
+                  <option value="3">낮음</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 mb-3">
+          <div class="row">
+            <div class="col-md mb-md-0 mb-2">
+              <div class="form-check custom-option custom-option-icon">
+                <label class="form-check-label custom-option-content" for="customRadioBuilder">
+                  <span class="custom-option-body">
+                    <i class="bx bx-building-house"></i>
+                    <span class="custom-option-title">진행</span>
+                  </span>
+                  <input name="issueSttus" class="form-check-input" type="radio" value="1" id="issueSttus" checked>
+                </label>
+              </div>
+            </div>
+            <div class="col-md mb-md-0 mb-2">
+              <div class="form-check custom-option custom-option-icon checked">
+                <label class="form-check-label custom-option-content" for="customRadioOwner">
+                  <span class="custom-option-body">
+                    <i class="bx bx-crown"></i>
+                    <span class="custom-option-title">보류</span>
+                  </span>
+                  <input name="issueSttus" class="form-check-input" type="radio" value="2" id="issueSttus">
+                </label>
+              </div>
+            </div>
+            <div class="col-md mb-md-0 mb-2">
+              <div class="form-check custom-option custom-option-icon">
+                <label class="form-check-label custom-option-content" for="customRadioBroker">
+                  <span class="custom-option-body">
+                    <i class="bx bx-briefcase-alt"></i>
+                    <span class="custom-option-title">완료</span>
+                  </span>
+                  <input name="issueSttus" class="form-check-input" type="radio" value="3" id="issueSttus">
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="row">
+          <div class="col mb-3">
+            <label for="nameBackdrop" class="fw-medium">이슈명</label>
+            <input type="text" id="issueSj" name="issueSj" class="form-control" required>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col mb-3">
+            <label for="nameBackdrop" class="fw-medium">이슈기한</label>
+            <input type="date" id="issueEdate" name="issueEdate" class="form-control" placeholder="Enter Name">
+          </div>
+        </div>
+        <div class="row" id="issueJobSnDiv">
+          <div class="col mb-3">
+            <label for="nameBackdrop" class="fw-medium">일감참조</label>
+            <select name="jobSn" id="jobSn" class="form-select" tabindex="0">
+              <option value="">(선택)</option>
+              <c:forEach items="${jobList}" var="uJob">
+                <option value="${uJob.jobSn}" id="insertTempUJob">${uJob.jobSj}</option>
+              </c:forEach>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col mb-3">
+            <label for="nameBackdrop" class="fw-medium">내용</label>
+            <textarea name="issueCn" id="issueCn" class="form-control" rows="5" cols="10">값</textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">
+          취소
+        </button>
+        <button type="button" class="btn btn-primary" onclick="fn_issueInsert()">저장</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- 상세보기 오프캔버스 -->
+
+<div class="col-lg-3 col-md-6">
+  <div class="mt-2">
+    <div class="offcanvas offcanvas-bottom" tabindex="-1" id="offcanvasBottom" aria-labelledby="offcanvasBottomLabel" style="height: 300px;">
+      <div class="offcanvas-header">
+        <h5 id="offcanvasBottomLabel" class="offcanvas-title"><i class='bx bx-message-error'></i> Issue Detail</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+      <div class="offcanvas-body">
+        <hr class="my-0 mb-3">
+       <div class="row g-2" >
+          <div class=" mb-3 col-md-3 col-lg-3" id="seArea">
+          <!-- 이슈종류 -->
+          </div>
+          <div class=" mb-3 col-md-3 col-lg-3" id="impArea">
+          <!-- 이슈중요도 -->
+          </div>
+          <div class=" mb-3 col-md-3 col-lg-3" id="sttusArea">
+          <!-- 이슈상태 -->
+          </div>
+          <div class=" mb-3 col-md-3 col-lg-3" id="edataArea">
+            <!-- 이슈기한 -->
+          </div>
+        </div>
+       <div class="row g-2" >
+          <div class=" mb-3 col-md-6 col-lg-6" id="sjArea">
+            <!-- 이슈제목 -->
+          </div>
+          <div class=" mb-3 col-md-3 col-lg-3" id="writerArea">
+          <!-- 이슈작성자 -->
+          </div>
+          <div class=" mb-3 col-md-3 col-lg-3" id="rdateArea">
+           <!-- 이슈작성일 -->
+          </div>
+        </div>
+       <div class="row g-2" >
+          <div class=" mb-3 col-md-6 col-lg-6" id="cnArea">
+            <!-- 이슈내용 -->
+          </div>
+          <div class=" mb-3 col-md-6 col-lg-6" id="refJobArea">
+           <!-- 이슈참조일감 -->
+          </div>
+        </div>
+         <hr class="my-0 mb-3">
+        <button type="button" class="btn btn-label-danger me-2 mt-2">삭제</button>
+        <button type="button" class="btn btn-label-warning me-2 mt-2">수정</button>
+        <button type="button" class="btn btn-label-info mt-2" data-bs-dismiss="offcanvas">
+          닫기
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<script type="text/javascript" src="${pageContext.request.contextPath}/resources/js/app/issue/issue.js"></script>
+<script>
+//일반이슈 버튼 클릭시 일감명참조 안보이기
+$('.GenIssue').on("click", function(){
+  if($(this).val() ==""){
+    $('#issueJobSnDiv').hide();
+
+  }else {
+    $('#issueJobSnDiv').show();
+  } 
+});
+
+$('.bugIssue').on("click", function(){
+  if($(this).val() ==""){
+    $('#issueJobSnDiv').show();
+
+  }else {
+    $('#issueJobSnDiv').hide();
+  } 
+});
+
+</script>
+

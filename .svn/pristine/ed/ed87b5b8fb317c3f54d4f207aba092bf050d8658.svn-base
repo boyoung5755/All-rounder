@@ -1,0 +1,86 @@
+package kr.or.ddit.groupware.sanction.controller;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import kr.or.ddit.common.enumpkg.ServiceResult;
+import kr.or.ddit.groupware.sanction.service.BookmarkService;
+import kr.or.ddit.vo.groupware.BookmarkDetailVO;
+import kr.or.ddit.vo.groupware.BookmarkVO;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * @author 전수진
+ * @since 2023. 11. 17.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet 
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일           수정자               수정내용
+ * --------     --------    ----------------------
+ * 2023. 11. 17.  전수진     최초작성
+ * Copyright (c) 2023 by DDIT All right reserved
+ * </pre>
+ */
+@Slf4j
+@Controller
+@RequestMapping("/bookmark")
+public class BookmarkController {
+	@Inject
+	private BookmarkService service;
+	
+	@ResponseBody
+	@PostMapping("new")
+	public String createBookmark(@RequestBody BookmarkVO bookmark 
+			, Authentication authentication
+			, RedirectAttributes ra
+			) {
+	
+		String empCd = authentication.getName();
+		bookmark.setBkmkOwner(empCd);
+		
+		ServiceResult result = service.createBookmark(bookmark);
+		
+		String msg = "FAIL";
+		
+		if(result.equals(ServiceResult.OK)) {
+			msg = "OK";
+		} 
+		
+		return msg;
+		
+	}
+	
+	@GetMapping("list")
+	public String bookmarkList(Authentication authentication, Model model) {
+		String empCd = authentication.getName();
+		List<BookmarkVO> bookmarkList = service.retrieveBookmarkList(empCd);
+		model.addAttribute("bookmarkList",bookmarkList);
+		return "jsonView";
+	}
+
+	
+	@GetMapping("detail")
+	public String bookmarkDetailList(@RequestParam String bkmkNo, Model model) {
+		log.info("bkmkNo======================"+bkmkNo);
+		List<BookmarkDetailVO> detailList = service.retrieveBookmarkDetailList(bkmkNo);
+		model.addAttribute("detailList", detailList);
+		log.info("detailList======================"+detailList);
+		
+		return "jsonView";
+	}
+	
+	
+}

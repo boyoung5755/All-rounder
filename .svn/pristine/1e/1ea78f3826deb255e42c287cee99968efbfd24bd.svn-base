@@ -1,0 +1,156 @@
+/**
+ * <pre>
+ * 
+ * </pre>
+ * @author 작성자명
+ * @since 2023. 11. 30.
+ * @version 1.0
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일        수정자       수정내용
+ * --------     --------    ----------------------
+ * 2023. 11. 30.      오경석       최초작성
+ * Copyright (c) 2023 by DDIT All right reserved
+ * </pre>
+ */
+
+document.addEventListener("DOMContentLoaded", function() {
+	freeList();
+	selectFree();
+});
+
+function freeList() {
+
+	$.ajax({
+		type: "get",
+		url: "/free/list",
+		contentType: "application/json; charset=UTF-8",
+		dataType: "json",
+		success: function(res) {
+			let tag = res.paging.pagingHTML;
+			let list = res.paging.dataList;
+			
+			if(list[0] != null){
+				
+				let freeboardList = "";
+				
+				list.forEach((item) => {
+					let day = item.bbsRgsde;
+					let date = `${day[0]}-${day[1]}-${day[2]}`;
+	
+					let html = `
+						<div class="post_img_wrap">
+							<div class="img-box">
+								<img src="https://png.pngtree.com/png-vector/20191115/ourmid/pngtree-beautiful-profile-line-vector-icon-png-image_1990469.jpg" alt="프로필" id="imgSize">
+							</div>
+							<div class="txt-box">
+								<h2><a href="javascript:void(0);" onclick="selectFree()" data-freeNo="${item.bbsNo}" id="freeBBSNo">${item.bbsSj}</a></h2>
+								<p>글쓴이 : ${item.empName}(${item.empCd}) | 날짜 : ${date}</p>
+								<p>내용 : ${item.bbsCn}</p>
+							</div>	
+						</div					
+					`;
+					freeboardList += html;					
+				});
+					
+				document.getElementById("board").innerHTML=freeboardList;
+				document.querySelector(".freePage").innerHTML=tag;				
+			}
+
+		},
+		error: function(xhr) {
+			alert("2")
+			console.log(xhr);
+		}
+	});
+
+}
+
+function selectFree(){
+	console.log("1")
+	console.log(document.getElementById("freeBBSNo"))
+	let bbsNo = document.getElementById("freeBBSNo").getAttribute("data-freeno");
+	console.log(bbsNo)
+	let url = "/free/"+bbsNo;
+	console.log(url)
+	let jsondata = {
+		"bbsNo":bbsNo
+		}
+	$.ajax({
+		type:"post",
+		url:url,
+		contentType: "application/json; charset=UTF-8",
+		data:JSON.stringify(jsondata),
+		dataType:"json",
+		success:function(res){
+			alert("1")
+			console.log(res)
+			document.getElementById("boardHead").style.display.none;
+			document.getElementById("board").style.display.none;
+			document.getElementById("boardFoot").style.display.none;
+			
+			let day = res.bbsRgsde;
+			let date = `${day[0]}-${day[1]}-${day[2]}`;	
+					
+			let html = `
+				<link rel="stylesheet" type="text/css" href="\${contextPath}/resources/css/freeboard/freeDetail.css">
+			
+				<h1 style="text-align: center;">Webzine Board - 상세 정보</h1>
+
+			    <div id="postDetail">
+			        <div class="img-box">
+			            <img src="https://via.placeholder.com/30x30" alt="이미지1">
+			        </div>
+			        <div class="txt-box">
+			            <h2>${res.bbsSj}</h2>
+			            <p>글쓴이: ${res.empName}(${res.empCd}) | 날짜: ${date}</p>
+			            <p>내용: ${res.bbsCn}</p>
+			        </div>
+			    </div>
+			
+			    <!-- 파일 추가 기능 -->
+			    <div id="fileUpload">
+			        <!-- 파일 업로드 양식 및 버튼 등을 추가 -->
+			        <input type="file" name="file" id="fileInput">
+			        <button id="uploadBtn">파일 업로드</button>
+			    </div>
+				`;
+/*				let anser = res.anserList;
+				anser.foreach((v)=>{
+					v.answerWrter
+				})*/
+				html += `
+			    <!-- 댓글 기능 -->
+			    <div id="comments">
+			        <!-- 댓글 목록 표시 -->
+			        <div class="comment">
+			            <p>댓글 내용 1</p>
+			            <button class="replyBtn">답글</button>
+			        </div>
+			        <!-- 대댓글 입력 양식 -->
+			        <div class="replyForm">
+			            <textarea placeholder="대댓글을 입력하세요"></textarea>
+			            <button class="submitReplyBtn">등록</button>
+			        </div>
+			        <!-- 댓글 입력 양식 -->
+			        <div id="commentForm">
+			            <textarea placeholder="댓글을 입력하세요"></textarea>
+			            <button id="submitCommentBtn">등록</button>
+			        </div>
+			    </div>
+			
+			    <!-- 수정, 삭제 기능 -->
+			    <div id="editDelete">
+			        <button id="editBtn">수정</button>
+			        <button id="deleteBtn">삭제</button>
+			    </div>
+			`;
+			document.getElementById("boardFreeList").innerHTML = html;
+		},
+		error:function(xhr){
+			alert("2")
+			console.log(xhr)
+		}
+		
+	});
+}

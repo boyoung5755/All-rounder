@@ -1,0 +1,303 @@
+package kr.or.ddit.groupware.webhard.ftp;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.net.ftp.FTP;
+import org.apache.commons.net.ftp.FTPClient;
+
+import kr.or.ddit.vo.FTPVO;
+
+/**
+ * @author 권도윤
+ * @since 2023. 11. 9.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * 
+ *      <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2023. 11. 9.      권도윤       최초작성
+ * Copyright (c) 2023 by DDIT All right reserved
+ *      </pre>
+ */
+public class FTPControl {
+
+	// 선택된 디렉토리(폴더)에 존재하는 파일이름을 모두 불러옵니다.
+	public static List<String> ftpReadFiles(FTPVO fVO) {
+		List<String> fileNames=new ArrayList<String>();
+		FTPClient ftp = null;
+		try {
+			String uri = fVO.getUri();
+			String id = fVO.getId();
+			String pw = fVO.getPw();
+			String directoryLocation = fVO.getDirectoryLocation();
+			ftp = new FTPClient();
+			ftp.setControlEncoding("UTF-8");
+			ftp.connect(uri);
+			ftp.login(id, pw);
+			ftp.changeWorkingDirectory(directoryLocation);// 파일 가져올 디렉터리 위치
+			ftp.setFileType(FTP.BINARY_FILE_TYPE);// 파일 타입 설정 기본적으로 파일을 전송할떄는 BINARY타입을 사용합니다.
+
+			for (String fileName : ftp.listNames()) {
+				System.out.println(fileName);
+				fileNames.add(fileName);
+			}
+
+			ftp.logout();
+		} catch (SocketException e) {
+			System.out.println("Socket:" + e.getMessage());
+		} catch (IOException e) {
+			System.out.println("IO:" + e.getMessage());
+		} finally {
+			if (ftp != null && ftp.isConnected()) {
+				try {
+					ftp.disconnect();// ftp연결 끊기
+				} catch (IOException e) {
+				}
+			}
+		}
+		return fileNames;
+	}
+
+	// 파일 다운
+	public static void ftpFileDownload(FTPVO fVO) {
+		FTPClient ftp = null;
+		try {
+			String uri = fVO.getUri();
+			String id = fVO.getId();
+			String pw = fVO.getPw();
+			String localFile = fVO.getLocalFile();
+			String ftpFile = fVO.getFtpFile();
+			String directoryLocation = fVO.getDirectoryLocation();
+			String downloadRoute = "C:/download/";
+			ftp = new FTPClient();
+			ftp.setControlEncoding("UTF-8");
+			ftp.connect(uri); // "192.168.0.35"
+			ftp.login(id, pw); // "MeongDdi", "1234"
+			ftp.changeWorkingDirectory(directoryLocation);// 파일 가져올 디렉터리 위치
+			ftp.setFileType(FTP.BINARY_FILE_TYPE);// 파일 타입 설정 기본적으로 파일을 전송할떄는 BINARY타입을 사용합니다.
+			File donwloadFile = new File(downloadRoute);
+			if(!donwloadFile.exists()) {
+				donwloadFile.mkdir();
+			}
+			File f = new File(localFile);// 로컬에 다운받아 설정할 이름
+			FileOutputStream fos = null;
+			try {
+				fos = new FileOutputStream(f);
+				boolean isSuccess = ftp.retrieveFile(ftpFile, fos);// ftp서버에 존재하는 해당명의 파일을 다운로드 하여 fos에 데이터를 넣습니다.
+				if (isSuccess) {
+					System.out.println("다운로드를 성공 하였습니다.");
+				} else {
+					System.out.println("다운로드 실패하였습니다.");
+				}
+			} catch (IOException ex) {
+				System.out.println(ex.getMessage());
+			} finally {
+				if (fos != null)
+					try {
+						fos.close();
+					} catch (IOException ex) {
+					}
+			}
+			ftp.logout();
+		} catch (SocketException e) {
+			System.out.println("Socket:" + e.getMessage());
+		} catch (IOException e) {
+			System.out.println("IO:" + e.getMessage());
+		} finally {
+			if (ftp != null && ftp.isConnected()) {
+				try {
+					ftp.disconnect();// ftp연결 끊기
+				} catch (IOException e) {
+				}
+			}
+		}
+	}
+
+	public static void ftpFileUpload(FTPVO fVO) {
+		FTPClient ftp = null;
+		try {
+			String uri = fVO.getUri();
+			String id = fVO.getId();
+			String pw = fVO.getPw();
+			String localFile = fVO.getLocalFile();
+			String ftpFile = fVO.getFtpFile();
+			String directoryLocation = fVO.getDirectoryLocation();
+//			String route = fVO.getRoute();
+			
+			ftp = new FTPClient();
+			ftp.setControlEncoding("UTF-8");
+			ftp.connect(uri);
+			ftp.login(id, pw);
+			ftp.changeWorkingDirectory(directoryLocation);// 파일을 업로드할 ftp서버의 디렉토리(폴더)위치
+			ftp.setFileType(FTP.BINARY_FILE_TYPE);// 파일 타입 설정 기본적으로 파일을 전송할떄는 BINARY타입을 사용합니다.
+
+			File uploadFile = new File(localFile);// 업로드할 로컬 파일
+			
+//			String[] folder=ftpFile.split("/");
+//			route=ftpFile.substring(0, ftpFile.length() - folder[folder.length - 1].length());
+//			ftp.mkd(route);
+//			ftpFileUpload(fVO);
+			
+			FileInputStream fis = null;
+			try {
+				fis = new FileInputStream(uploadFile);
+				boolean isSuccess = ftp.storeFile(ftpFile, fis);// ftp서버에 존재하는 해당명의 파일을 다운로드 하여 fos에 데이터를 넣습니다.
+				if (isSuccess) {
+					System.out.println("업로드를 성공하였습니다.");
+				} else {
+					System.out.println("업로드에 실패하였습니다.");
+				}
+			} catch (IOException ex) {
+				System.out.println(ex.getMessage());
+			} finally {
+				if (fis != null)
+					try {
+						fis.close();
+					} catch (IOException ex) {
+					}
+			}
+			ftp.logout();
+		} catch (SocketException e) {
+			System.out.println("Socket:" + e.getMessage());
+		} catch (IOException e) {
+			System.out.println("IO:" + e.getMessage());
+		} finally {
+			if (ftp != null && ftp.isConnected()) {
+				try {
+					ftp.disconnect();// ftp연결 끊기
+				} catch (IOException e) {
+				}
+			}
+		}
+	}
+
+	public static void ftpFileDelete(FTPVO fVO) {
+
+		FTPClient ftp = null; // FTP Client 객체
+		FileInputStream fis = null; // File Input Stream
+
+		String uri = fVO.getUri();
+		String id = fVO.getId();
+		String pw = fVO.getPw();
+		String directoryLocation = fVO.getDirectoryLocation();
+		String ftpFile = fVO.getFtpFile();
+
+		try {
+			ftp = new FTPClient(); // FTP Client 객체 생성
+			ftp.setControlEncoding("UTF-8"); // 문자 코드를 UTF-8로 인코딩
+			ftp.connect(uri); // 서버접속 " "안에 서버 주소 입력 또는 "서버주소", 포트번호
+			ftp.login(id, pw); // FTP 로그인 ID, PASSWORLD 입력
+//    	      ftp.enterLocalPassiveMode(); // Passive Mode 접속일때 
+			ftp.changeWorkingDirectory(directoryLocation); // 작업 디렉토리 변경
+			ftp.setFileType(FTP.BINARY_FILE_TYPE); // 업로드 파일 타입 셋팅
+
+			try {
+				boolean isSuccess = ftp.deleteFile(ftpFile);// 파일삭제
+				if (isSuccess) {
+					System.out.println(ftpFile + "삭제하였습니다.");
+				} else {
+					System.out.println(ftpFile + "삭제하지 못 했습니다.");
+				}
+			} catch (IOException ex) {
+				System.out.println("IO Exception : " + ex.getMessage());
+			} finally {
+				if (fis != null) {
+					try {
+						fis.close(); // Stream 닫기
+					} catch (IOException ex) {
+						System.out.println("IO Exception : " + ex.getMessage());
+					}
+				}
+			}
+			ftp.logout(); // FTP Log Out
+		} catch (IOException e) {
+			System.out.println("IO:" + e.getMessage());
+		} finally {
+			if (ftp != null && ftp.isConnected()) {
+				try {
+					ftp.disconnect(); // 접속 끊기
+				} catch (IOException e) {
+				}
+			}
+		}
+	}
+	
+	public static void ftpForderUpload(FTPVO fVO) {
+		FTPClient ftp = null; // FTP Client 객체
+		String uri = fVO.getUri();
+		String id = fVO.getId();
+		String pw = fVO.getPw();
+		String ftpFile = fVO.getFtpFile();
+		String directoryLocation = fVO.getDirectoryLocation();
+		try {
+			ftp = new FTPClient(); // FTP Client 객체 생성
+			ftp.setControlEncoding("UTF-8"); // 문자 코드를 UTF-8로 인코딩
+			ftp.connect(uri); // 서버접속 " "안에 서버 주소 입력 또는 "서버주소", 포트번호
+			ftp.login(id, pw); // FTP 로그인 ID, PASSWORLD 입력
+//    	      ftp.enterLocalPassiveMode(); // Passive Mode 접속일때 
+			ftp.changeWorkingDirectory(directoryLocation); // 작업 디렉토리 변경
+			ftp.setFileType(FTP.BINARY_FILE_TYPE); // 업로드 파일 타입 셋팅
+			
+			ftp.mkd(ftpFile);
+		} catch (IOException e) {
+			System.out.println("IO:" + e.getMessage());
+		}finally {
+			if (ftp != null && ftp.isConnected()) {
+				try {
+					ftp.disconnect(); // 접속 끊기
+				} catch (IOException e) {
+				}
+			}
+		}
+	}
+		
+	public static void ftpFolderDelete(FTPVO fVO) {
+		FTPClient ftp = null; // FTP Client 객체
+		String uri = fVO.getUri();
+		String id = fVO.getId();
+		String pw = fVO.getPw();
+		String directoryLocation = fVO.getDirectoryLocation();
+		try {
+			ftp = new FTPClient(); // FTP Client 객체 생성
+			ftp.setControlEncoding("UTF-8"); // 문자 코드를 UTF-8로 인코딩
+			ftp.connect(uri); // 서버접속 " "안에 서버 주소 입력 또는 "서버주소", 포트번호
+			ftp.login(id, pw); // FTP 로그인 ID, PASSWORLD 입력
+//    	      ftp.enterLocalPassiveMode(); // Passive Mode 접속일때 
+			ftp.changeWorkingDirectory(directoryLocation); // 작업 디렉토리 변경
+			ftp.setFileType(FTP.BINARY_FILE_TYPE); // 업로드 파일 타입 셋팅
+			
+			while(ftpReadFiles(fVO).size()!=0) {
+				List<String> fileNames= ftpReadFiles(fVO);
+				for(String fileName : fileNames) {
+					if(fileName.contains(".")) {
+						FTPVO fVO2=new FTPVO();
+						fVO2.setFtpFile(directoryLocation+"/"+fileName);
+						ftpFileDelete(fVO2);
+					}else {
+						FTPVO fVO2=new FTPVO();
+						fVO2.setDirectoryLocation(directoryLocation+"/"+fileName);
+						ftpFolderDelete(fVO2);
+					}
+				}
+			}
+			ftp.rmd(directoryLocation);
+		} catch (IOException e) {
+			System.out.println("IO:" + e.getMessage());
+		}finally {
+			if (ftp != null && ftp.isConnected()) {
+				try {
+					ftp.disconnect(); // 접속 끊기
+				} catch (IOException e) {
+				}
+			}
+		}
+	}
+}

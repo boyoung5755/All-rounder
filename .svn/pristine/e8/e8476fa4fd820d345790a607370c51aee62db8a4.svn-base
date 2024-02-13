@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일         수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2023. 11. 21. 전수진     최초작성               -->
+<!--  2023. 11. 22. 전수진     insert selectKey변경      -->
+<!--  2023. 11. 23. 전수진     결재문서 삭제, 수정      -->
+<!--  Copyright (c) 2023 by DDIT All right reserved -->
+
+
+<mapper namespace="kr.or.ddit.groupware.sanction.dao.SanctionLineDAO">
+
+	<!-- 결재라인 생성 -->
+	<insert id="insertSanctionLine" parameterType="SanctionLineVO">
+	<selectKey order="BEFORE" keyProperty="sanctnLineNo" resultType="string">
+		SELECT 'SL'||TO_CHAR(SYSDATE,'YYMMDD')||LPAD(NVL(MAX(SUBSTR(SANCTN_LINE_NO,9)),0)+1,3,'0')
+		FROM SANCTION_LINE
+		WHERE SUBSTR(SANCTN_LINE_NO,3,6) = TO_CHAR(SYSDATE,'YYMMDD')
+	</selectKey>
+		INSERT INTO SANCTION_LINE (
+		    SANCTN_LINE_NO 		/* 결재라인번호 */
+		    , SANCTN_NO 		/* 결재문서번호 */
+		    , SANCTNER 			/* 결재자 */
+		    , SANCTN_ORDR		/* 결재순서 */
+		    , SANCTNLINE_STTUS 	/* 결재상태 */
+		    , SANCTNER_ENDYN 	/* 최종결재자여부 */
+		) VALUES (
+			  #{sanctnLineNo}
+		    , #{sanctnNo}
+		    , #{sanctner}
+		    , #{sanctnOrdr}
+		    , #{sanctnlineSttus}
+		    , #{sanctnerEndyn}
+		)
+	</insert>
+	
+	<!-- 결재라인 수정 -->
+	<update id="updateSanctionLine" parameterType="SanctionLineVO">
+		UPDATE SANCTION_LINE
+		SET
+		   	SANCTNER = #{sanctner}					/* 결재자 */
+		    , SANCTN_ORDR = #{sanctnOrdr} 			/* 결재순서 */
+		    , SANCTNER_ENDYN = #{sanctnerEndyn} 	/* 최종결재자 여부 */
+		    , SANCTNLINE_STTUS = #{sanctnlineSttus} /* 결재상태 */
+		WHERE
+		    SANCTN_LINE_NO = #{sanctnLineNo}
+	</update>
+	
+	<!-- 결재라인 삭제 -->
+	<delete id="deleteSanctionLine" parameterType="String">
+		DELETE FROM SANCTION_LINE
+		WHERE
+		   SANCTN_LINE_NO =  #{sanctnLineNo}
+	</delete>
+</mapper>

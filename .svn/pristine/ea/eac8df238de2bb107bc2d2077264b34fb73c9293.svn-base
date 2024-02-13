@@ -1,0 +1,158 @@
+package kr.or.ddit.company.org.controller;
+
+import java.security.Principal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.company.org.service.OrgService;
+import kr.or.ddit.vo.groupware.DeptVO;
+import kr.or.ddit.vo.groupware.EmployeeVO;
+
+/**
+ * @author 작성자명
+ * @since 2023. 11. 8.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet 
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2023. 11. 8.      오경석       최초작성       org.jsp에 adaptee로 변환해서 넣으려고 했지만 jsp에서 id와 pid를 내가 컨트롤 할 수 없어 List<EmployeeVO> 로 보내고 jsp에서 조작함.		
+ * 2023. 11. 10.      오경석       조직도 가로 완성       		
+ * Copyright (c) 2023 by DDIT All right reserved
+ * </pre>
+ */
+@Controller
+@RequestMapping("/org")
+public class OrgController {
+
+	@Inject
+	private OrgService service;
+	
+	
+	/**
+	 * 처음 페이지 이동
+	 * @param model
+	 * @return
+	 */
+	@GetMapping
+	public String orgList(Model model) {
+		List<EmployeeVO> list = service.selectListOrg();
+		model.addAttribute("list", list);
+		return "company/listorg";
+	}
+	
+	/**
+	 * 조직도
+	 * 세로 출력 조회
+	 * @param model
+	 * @return
+	 */
+	@GetMapping(value = "/list")
+	@ResponseBody
+	public Map<String,Object> organicationList() {
+		List<EmployeeVO> list = service.selectListOrg();
+		List<DeptVO> dept = service.selectListDept();
+//		List<Org> orgList = list.stream().map(Org::new)
+//					.collect(Collectors.toList());
+		
+		Map<String,Object> mjData = new HashMap<String, Object>();
+		mjData.put("list", list);
+		mjData.put("dept", dept);
+
+		return mjData;
+	}
+
+	//-----------------------------------------------------------------------------------
+	
+	/**
+	 * 조직도 
+	 * 페이지 이동
+	 * @return
+	 */
+	@GetMapping("/organization")
+	public String organizationList() {
+
+		return "company/organization";
+		
+	}
+	
+	/**
+	 * 조직도
+	 * 가로 전체 출력
+	 * @param model
+	 * @return
+	 */
+	@GetMapping(value="/do")
+	public String orgTest(Model model) {
+		List<EmployeeVO> list = service.selectListOrg();
+		List<DeptVO> dept = service.selectListDept();
+//		List<Org> orgList = list.stream().map(Org::new)
+//					.collect(Collectors.toList());
+		model.addAttribute("list", list);
+		model.addAttribute("dept", dept);
+		return "jsonView";
+	}
+	
+	/**
+	 * 조직도
+	 * 부서 추가
+	 * @param deptName
+	 * @param model
+	 * @return
+	 */
+	@PostMapping
+	public String insertDept(@RequestParam("deptName") String deptName) {
+		System.out.println(deptName);
+		DeptVO dVO=new DeptVO();
+		dVO.setDeptName(deptName);
+		service.insertDept(dVO);		
+		
+		
+		return "jsonView";
+	}
+	
+	/**
+	 * 조직도
+	 * 직원 상세 조회
+	 * @param empCd
+	 * @param model
+	 * @return
+	 */
+	@GetMapping("{empCd}")
+	public String selectOrg(@PathVariable("empCd") String empCd, Model model) {
+		EmployeeVO emp = service.selectOrg(empCd);
+		model.addAttribute("emp", emp);
+		return "jsonView";
+	}
+	
+//	/*
+//	 * @GetMapping("/login")
+//	 * 
+//	 * @ResponseBody public EmployeeVO loginOrg(Authentication pricipal) { String
+//	 * login = pricipal.getName(); EmployeeVO vo = service.selectOrg(login); return
+//	 * vo; }
+//	 */
+	
+	@DeleteMapping("{deptName}")
+	public String deleteOrg(@RequestParam("deptName") String deptName) {
+		service.deleteDept(deptName);
+		return "jsonView";
+	}
+	
+	
+}

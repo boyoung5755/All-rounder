@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="kr.or.ddit.admin.analysis.dao.AnalysisDAO">
+	
+	<resultMap type="EmployeeVO" id="empMap" autoMapping="true">
+		<id property="empCd" column="EMP_CD"	/> 
+	<association property="dept" javaType="DeptVO" autoMapping="true">
+		<id property="deptCd" column="DEPT_CD" />
+	</association>
+	<association property="common" javaType="CommonVO" autoMapping="true">
+	</association> 
+	</resultMap>
+	
+	
+<!-- 	부서별 인원 -->
+	<select id="emphavedept" resultMap="empMap" parameterType="EmployeeVO"> 
+	SELECT
+	    D.DEPT_NAME,
+	    COUNT(*) AS DEPT_COUNT
+	FROM
+	    EMPLOYEE E
+	JOIN
+	    DEPT D ON D.DEPT_CD = E.DEPT_CD
+	WHERE
+	    E.EMP_LOGIN_FLAG NOT IN ('L', 'Y')
+	AND E.DEPT_CD NOT IN ('DEPT_01','DEPT_010')
+	GROUP BY
+	    D.DEPT_NAME
+	</select> 
+	
+<!-- 	직급별 인원 -->
+	<select id="emphaverank" resultMap="empMap" parameterType="EmployeeVO">  
+		SELECT
+		    C.COMMON_CODE_SJ,
+		    COUNT(*) AS RANK_COUNT
+		FROM 
+		    employee E 
+		JOIN
+		    COMMON_CODE C ON C.COMMON_CODE_CD = E.EMP_RANK
+		WHERE
+		    E.EMP_LOGIN_FLAG NOT IN 'Y'
+		GROUP BY
+		    C.COMMON_CODE_SJ, E.EMP_RANK
+		ORDER BY
+		    E.EMP_RANK DESC
+	</select>
+	
+	
+	
+	
+	
+	  
+</mapper>

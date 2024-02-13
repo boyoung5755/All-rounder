@@ -1,0 +1,22 @@
+@charset "UTF-8";
+
+.resized-image {
+    width: 100%;
+    height: auto;
+}
+#updateClick{
+	width: 70px;
+}
+#qrcode{
+	width: 200px;
+	height: 63px;
+}
+#updateMypage{
+	width: 70px;
+}
+#cancellMypage{
+	width: 70px;
+}
+#searchMypage{
+	width: 70px;
+}

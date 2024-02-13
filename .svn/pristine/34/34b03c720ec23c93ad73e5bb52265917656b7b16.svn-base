@@ -1,0 +1,90 @@
+package kr.or.ddit.login.service;
+
+import java.lang.reflect.InvocationTargetException;
+
+import org.apache.commons.beanutils.BeanUtils;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.common.enumpkg.ServiceResult;
+import kr.or.ddit.login.dao.LoginDAO;
+import kr.or.ddit.vo.groupware.EmployeeVO;
+import lombok.RequiredArgsConstructor;
+
+/**
+ * @author 박민주
+ * @since 2023. 11. 7.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * 
+ *      <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2023. 11. 7.      박민주          최초작성
+ * 2023. 11. 8.       박민주         비밀번호 찾기에 사용되는 비즈니스 로직 추가
+ * Copyright (c) 2023 by DDIT All right reserved
+ *      </pre>
+ */
+
+@RequiredArgsConstructor
+@Service
+public class LoginServiceImpl implements LoginService {
+
+   private final LoginDAO loginDao;
+
+   @Override
+   public ServiceResult authenticate(EmployeeVO inputData) {
+      EmployeeVO saved = loginDao.selectEmpForAuth(inputData);
+      ServiceResult result = null;
+
+      if (saved != null) {
+
+         // 로그인 시 사용되는 로직 : 비밀번호를 입력받은 경우 (inputData에 비밀번호가 있는 경우)
+         if (inputData.getEmpPw() != null) {
+            String inputPw = inputData.getEmpPw();
+            String savedPw = saved.getEmpPw();
+            if (inputPw.equals(savedPw)) {
+               try {
+                  BeanUtils.copyProperties(inputData, saved); // 동일한 properties 를 복사함!
+                  // 비밀번호가 일치 시, 로그인 성공 OK
+                  result = ServiceResult.OK;
+               } catch (IllegalAccessException | InvocationTargetException e) {
+                  throw new RuntimeException(e);
+               }
+            } else {
+               // 비밀번호 불일치 시, 로그인 실패 INVALIDPASSWORD
+               result = ServiceResult.INVALIDPASSWORD;
+            }
+         }
+      } else {
+         // 아예 입력한 사번이 존재하지 않으면 NOTEXIST
+         result = ServiceResult.NOTEXIST;
+      }
+      return result;
+   }
+
+   @Override
+   public ServiceResult authForFindPassword(EmployeeVO inputData) {
+      EmployeeVO saved = loginDao.selectEmpForAuth(inputData);
+      System.out.println("save ==> " + saved);
+      ServiceResult result = null;
+
+      if (saved != null) {
+            String inputName = inputData.getEmpName();
+            String savedName = saved.getEmpName();
+            String inputTelno = inputData.getEmpTelno();
+            String savedTelno = saved.getEmpTelno();
+            
+            if (inputName.equals(savedName) && inputTelno.equals(savedTelno)) {
+               // 입력받은 값들이 모두 일치하는 경우 OK
+               result = ServiceResult.OK;
+            } else {
+               // 입력받은 값들이 일치하지 않는 경우 (NOTEXIST)
+               result = ServiceResult.NOTEXIST;
+            }
+      } else { // 입력받은 값들이 일치하지 않는 경우
+         result = ServiceResult.NOTEXIST;
+      }
+      return result;
+   }
+}

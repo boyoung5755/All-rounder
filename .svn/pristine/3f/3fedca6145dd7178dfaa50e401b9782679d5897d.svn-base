@@ -1,0 +1,136 @@
+package kr.or.ddit.groupware.reservation.myReservation;
+
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import kr.or.ddit.groupware.reservation.confroom.service.ConfRoomService;
+import kr.or.ddit.groupware.reservation.vehicle.service.VehicleService;
+import kr.or.ddit.vo.PaginationInfo;
+import kr.or.ddit.vo.groupware.ConfRoomReservationVO;
+import kr.or.ddit.vo.groupware.VehicleReservationVO;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * 
+ * @author 박민주
+ * @since 2023. 11. 29.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * 
+ *      <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2023. 11. 29.      박민주       최초작성
+ * Copyright (c) 2023 by DDIT All right reserved
+ *      </pre>
+ */
+@Controller
+@Slf4j
+@RequestMapping("/myReservation")
+public class MyReservationController {
+
+	@Inject
+	private VehicleService vService;
+	@Inject
+	private ConfRoomService cService;
+
+	/**
+	 * 내 예약 페이지로 이동
+	 * 
+	 * @return
+	 */
+	@GetMapping("/myReservationHome")
+	public String myReservationHome(Model model, Authentication authentication,
+			@RequestParam(value = "pageV", required = false, defaultValue = "1") int currentPageV,
+			@RequestParam(value = "pageC", required = false, defaultValue = "1") int currentPageC) {
+		Map<String, Object> variousCondition = new HashMap<>();
+		variousCondition.put("empCd", authentication.getName());
+
+		// Controller단에서 PaginationInfo를 생성
+		PaginationInfo<VehicleReservationVO> pagingV = new PaginationInfo<>(5, 2);
+		pagingV.setCurrentPage(currentPageV);
+		pagingV.setVariousCondition(variousCondition);
+		vService.retrieveMyVehicleReservationList(pagingV);
+
+		PaginationInfo<ConfRoomReservationVO> pagingC = new PaginationInfo<>(5, 2);
+		pagingC.setCurrentPage(currentPageC);
+		pagingC.setVariousCondition(variousCondition);
+		cService.retrieveMyConfRoomReservationList(pagingC);
+
+		// 로그인한 사원본인이 예약한 차량, 회의실 내역 리스트 들고가기
+
+		model.addAttribute("pagingV", pagingV); // 차량예약 목록
+		model.addAttribute("pagingC", pagingC); // 차량예약 목록
+
+//		checkVStatus(pagingV);
+
+		return "reservation/myReservation";
+	}
+//
+//	/**
+//	 * PaginationInfo 를 넘겨받아 차량예약 코드별 예약상태를 반환하는 메소드
+//	 * 
+//	 * @param paging
+//	 */
+//	public List<Map<String, String>> checkVStatus(PaginationInfo<VehicleReservationVO> paging) {
+//		List<VehicleReservationVO> dataList = paging.getDataList();
+//		List<Map<String, String>> statusList = new ArrayList<Map<String, String>>();
+//		for (VehicleReservationVO vReserve : dataList) {
+//			String vhcleReserveCd = vReserve.getVhcleReserveCd();
+//			String vhcleUseTimeCdarrayStr = vReserve.getVhcleUseTimeCd();
+//
+//			Map<String, String> resultMap = new HashMap<String, String>();
+//			ObjectMapper objMapper = new ObjectMapper();
+//			String status = "";
+//			try {
+//				String[] stringArray = objMapper.readValue(vhcleUseTimeCdarrayStr, String[].class);
+//				for (String str : stringArray) {
+//					log.info("결과! ==> " + str);
+//					String[] times = str.split("-");
+//					String startTimeString = times[0];
+//					String endTimeString = times[1];
+//
+//					LocalTime currentTime = LocalTime.now();
+//					LocalTime startTime = LocalTime.parse(startTimeString);
+//
+//					LocalTime endTime = LocalTime.parse(endTimeString);
+//					boolean isWithinRange = !currentTime.isBefore(startTime) && !currentTime.isAfter(endTime);
+//					if (isWithinRange) { // 현재시간이 범위안에 있다면 "사용중"
+//						status = "사용중";
+//					} else {
+//						int currentMinute = currentTime.getHour() * 60 + currentTime.getMinute();
+//						int startMinute = startTime.getHour() * 60 + startTime.getMinute();
+//						boolean isBeforeCurrentTime = currentMinute < startMinute;
+//						if (isBeforeCurrentTime) { // 현재시간이 범위시작시간 이전이라면 "예약중"
+//							status = "예약중";
+//						} else {
+//							// 아니라면
+//							status = "사용완료";
+//						}
+//					}
+//					resultMap.put(vhcleReserveCd, status);
+//				}
+//				statusList.add(resultMap);
+//			} catch (JsonProcessingException e) {
+//				e.printStackTrace();
+//			}
+//		}
+//		return statusList; //예약코드와 현재 상태가 담긴 list
+//	}
+}

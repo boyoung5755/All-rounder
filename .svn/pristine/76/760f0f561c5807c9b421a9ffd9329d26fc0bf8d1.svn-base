@@ -1,0 +1,76 @@
+package kr.or.ddit.groupware.webhard.controller;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.groupware.webhard.service.WebHardService;
+import kr.or.ddit.vo.FTPVO;
+import kr.or.ddit.vo.groupware.WebHardVO;
+
+@Controller
+@RequestMapping("/web")
+public class WebHardController {	
+
+	@Inject
+	private WebHardService service;
+	
+	@ModelAttribute("web")
+	public WebHardVO web() {
+		WebHardVO web=new WebHardVO();
+		return web;
+	}
+	
+	@GetMapping
+	public String selectListFileUI() {
+		return "webhard/webhardList";
+	}
+	
+	@GetMapping("list")
+	public String selectListFile(
+			@RequestParam(value="webCours", required = false, defaultValue = "/") String webCours
+			, Model model) {
+		WebHardVO webVO=new WebHardVO();
+		webVO.setWebCours(webCours);
+		List<WebHardVO> webList= service.selectListFile(webVO);
+		model.addAttribute("webList",webList);
+		model.addAttribute("webCours",webCours);
+		return "jsonView";
+	}
+	
+	@PostMapping
+	@ResponseBody
+	public void InsertFile(WebHardVO webVO,Authentication auth) {
+		webVO.setWebMaker(auth.getName());
+		service.insertFile(webVO);
+	}
+	
+	@PostMapping("download")
+	@ResponseBody
+	public void ftpFileDownload(FTPVO ftpVO) {
+		service.download(ftpVO);
+	}
+	
+	@PostMapping("delete")
+	@ResponseBody
+	public void ftpFileDelete(WebHardVO webVO) {
+		service.delete(webVO);
+	}
+	
+	@PostMapping("update")
+	@ResponseBody
+	public void ftpFileUpdate(@RequestBody WebHardVO webVO) {
+		service.update(webVO);
+	}
+}

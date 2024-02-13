@@ -1,0 +1,287 @@
+/**
+ * <pre>
+ * 
+ * </pre>
+ * @author 작성자명
+ * @since 2023. 11. 28.
+ * @version 1.0
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일        수정자       수정내용
+ * --------     --------    ----------------------
+ * 2023. 11. 28.      작성자명       최초작성
+ * Copyright (c) 2023 by DDIT All right reserved
+ * </pre>
+ */ 
+
+$( document ).ready(function() {
+	mypageInfo();
+});
+
+// QR 코드를 생성할 값입니다
+    const qrValue = "${realUser.username}";
+
+    const qrCodeContainer = document.getElementById("qrcode");
+ 
+//     여기서 크기조절
+    const qrCode = new QRCode(qrCodeContainer, {
+        text: qrValue, 
+        width: 150,
+        height: 150,
+        colorDark : "#000000",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.H
+    });
+
+
+function mypageInfo(){
+	let nameMypage = document.getElementById("nameMypage"); // 이름	
+	let empCdMypage = document.getElementById("empCdMypage"); // 사번
+	let hiredateMypage = document.getElementById("hiredateMypage"); // 입사일
+	let profileMypage = document.getElementById("profileMypage"); // 프로필이미지
+	let nameMypage1 = document.getElementById("nameMypage1"); // 이름	
+	let deptnameMypage = document.getElementById("deptnameMypage"); // 부서명
+	let positionMypage = document.getElementById("positionMypage"); // 직책
+	let ranknameMypage = document.getElementById("ranknameMypage"); // 직급명
+	let zipMypage = document.getElementById("zipMypage"); // 우편번호
+	let adresMypage = document.getElementById("adresMypage"); // 주소1
+	let adresdetailMypage = document.getElementById("adresdetailMypage"); // 주소2
+	let extensionMypage = document.getElementById("extensionMypage"); // 내선전화
+	let empTelnoMypage = document.getElementById("empTelnoMypage"); // 휴대폰번호
+	let emailMypage = document.getElementById("emailMypage"); //이메일
+	let signMypage = document.getElementById("signMypage"); // 서명이미지
+	
+	$.ajax({
+		type:"GET",
+		url:"/mypage/info",
+		contentType: "application/json",
+		dataType: 'json',
+		success:function(res){
+			console.log(res)
+			nameMypage.innerHTML = res.empName; // 이름					
+			empCdMypage.innerHTML = res.empCd; // 사번
+			hiredateMypage.innerHTML = (res.empHiredate).substr(0,4) + "-" + (res.empHiredate).substr(5,2) + "-" + (res.empHiredate).substr(6,2) // 입사일
+			profileMypage.setAttribute("src", res.empProfileImg);// 프로필이미지
+			nameMypage1.innerHTML = res.empName; // 이름
+			deptnameMypage.innerHTML = res.deptName; // 부서명
+			positionMypage.innerHTML = res.empPosition; // 직책
+			ranknameMypage.innerHTML = res.rankName; // 직급명
+			zipMypage.innerHTML = res.empZip; // 우편번호
+			adresMypage.innerHTML = res.empAdres; // 주소1
+			adresdetailMypage.innerHTML = res.empAdresDetail; // 주소2
+			extensionMypage.innerHTML = res.empExtension; // 내선전화
+			empTelnoMypage.innerHTML = res.empTelno; // 휴대폰번호
+			emailMypage.innerHTML = res.empMail; //이메일
+			signMypage.setAttribute("src", res.empSignImgBase64); // 서명이미지
+			
+			res.deptCd // 부서코드
+			
+			
+			res.Birth // 생일
+			
+			
+						
+			res.Falg // 로그인 유형
+			
+			
+			res.Ssn // 주민번호
+			
+			
+		},
+		error: function(request, status, error) {
+			console.log("code: " + request.status)
+			console.log("message: " + request.responseText)
+			console.log("error: " + error);
+		}
+	});
+	
+};
+
+function updateClick(){	
+	let pwMypage = document.getElementById("pwMypage"); // 비밀번호 
+	let pwReMypage = document.getElementById("pwReMypage"); // 비밀번호 확인
+	let adresMypage = document.getElementById("adresMypage"); // 주소1
+	let adresdetailMypage = document.getElementById("adresdetailMypage"); // 주소2
+	let extensionMypage = document.getElementById("extensionMypage"); // 내선전화
+	let empTelnoMypage = document.getElementById("empTelnoMypage"); // 휴대폰번호
+	let emailMypage = document.getElementById("emailMypage"); //이메일
+	
+	
+	//prompt 텍스트 입력 팝업창 
+	swal({
+	    text: "비밀번호를 입력하세요:",
+	    content: {
+	        element: "input",
+	        attributes: {
+	            type: "password", // 입력값을 숨기기 위해 password 타입 사용
+	        },
+	    },
+	})
+	.then((value) => {
+	    // 여기서 value는 사용자가 입력한 값
+	
+	    // 비밀번호가 성공했을 경우
+	    if (value === "java") {
+	        swal("Success", "success");
+			let passwordText = `
+				<i class="bx bx-check re"></i><span class="fw-medium mx-2" _msttexthash="10057853" _msthash="286">비밀번호:</span> 
+				<input type="text" class="form-control" _msttexthash="22410817" _msthash="287" id="pwMypage"></span>
+			`;
+			
+			let passwordReText = `
+				<i class="bx bx-check re"></i><span class="fw-medium mx-2" _msttexthash="10057853" _msthash="286">비밀번호 확인:</span> 
+				<input type="text" class="form-control" _msttexthash="22410817" _msthash="287" id="pwReMypage"></span>
+			`;
+			let password = document.getElementById("Pw");
+			password.innerHTML = passwordText;
+			
+			let passwordRe = document.getElementById("rePw");
+			passwordRe.innerHTML = passwordReText;
+			
+			let extensionPhone = `
+				<i class="bx bx-phone"></i><span class="fw-medium mx-2" _msttexthash="10126389" _msthash="295">내선전화:</span> 
+				<input type="text" class="form-control" _msttexthash="111761" _msthash="296" id="extensionMypage">
+			`;
+			
+			let extensionPhoneMypage = document.getElementById("extensionPhoneMypage");
+			extensionPhoneMypage.innerHTML = extensionPhone;
+			
+			let cellPhone = `
+				<i class="bx bx-chat"></i><span class="fw-medium mx-2" _msttexthash="23102430" _msthash="297">휴대폰:</span> 
+				<input type="text" class="form-control" _msttexthash="9034857" _msthash="298" id="empTelnoMypage">
+			`;
+			
+			let cellPhoneMypage = document.getElementById("cellPhoneMypage");
+			cellPhoneMypage.innerHTML = cellPhone;
+			
+			let eMail = `
+				<i class="bx bx-envelope"></i><span class="fw-medium mx-2" _msttexthash="15589756" _msthash="299">이메일:</span> 
+				<input type="email" class="form-control" _msttexthash="421655" _msthash="300" id="emailMypage">
+			`;
+			
+			let myMailMypage = document.getElementById("myMailMypage");
+			myMailMypage.innerHTML = eMail;
+			
+			let myPageUpdate = `
+				<button class="btn btn-primary btn-icon btn-sm updateMypage" id="updateMypage" onclick="updateMypage()"><i class="bx bx-user"></i><span>확인</span></button>
+				<button class="btn btn-primary btn-icon btn-sm updateMypage" id="cancellMypage" onclick="cancellMypage()"><i class="bx bx-user"></i><span>취소</span></button>
+			`;
+			
+			let buttonMypage = document.getElementById("buttonMypage");
+			buttonMypage.innerHTML = myPageUpdate;
+			
+			let empZipMypage = `
+			  <i class="bx bx-map"></i><span class="fw-medium mx-2" _msttexthash="15295280" _msthash="292">우편번호:</span>
+              <div class="row">
+                <div class="mb-6 col-md-9">
+                  <input class="form-control" type="text" name="empZip" id="empZip" maxlength="5" required>
+                </div>
+                <div class="mb-6 col-md-3 ">
+                  <button class="btn btn-primary btn-icon btn-sm updateMypage" onclick="execDaumPostcode()" id="searchMypage">검색</button>
+                </div>
+              </div>
+			`;
+			
+			let myZipMypage = document.getElementById("myZipMypage");
+			myZipMypage.innerHTML = empZipMypage;
+			
+			let adressMypage = `
+			<i class="bx bx-map"></i><span class="fw-medium mx-2" _msttexthash="15295280" _msthash="292">주소:</span>
+				<div class="row"> 
+					<div class="mb-3 col-md-9">
+		              <input class="form-control" type="text" id="empAdres" name="empAdres"  required>
+		            </div
+		            <div class="mb-3 col-md-3">
+		              <input type="text" class="form-control" id="empAdresDetail" name="empAdresDetail" required>
+		            </div>
+				</div>
+				
+			`;
+			
+			let myAdressMypage = document.getElementById("myAdressMypage");
+			myAdressMypage.innerHTML = adressMypage;
+			
+	    } else {
+	        // 비밀번호가 실패했을 경우
+	        swal("Error", "비밀번호가 일치하지 않습니다.");
+	    }
+	});
+}
+
+/* 우편번호찾기	*/
+
+function execDaumPostcode() {
+	new daum.Postcode({
+		oncomplete: function (data) {
+			document.getElementById('empZip').value = data.zonecode;
+			document.getElementById('empAdres').value = data.address;
+		}
+	}).open();
+}
+
+function updateMypage(){
+	let pwMypage = document.getElementById("pwMypage").value;
+	console.log(pwMypage);
+	let pwReMypage = document.getElementById("pwReMypage").value;
+	console.log(pwReMypage);
+	let empZip = document.getElementById("empZip").value;
+	console.log(empZip);
+	let empAdres = document.getElementById("empAdres").value;
+	console.log(empAdres);
+	let empAdresDetail = document.getElementById("empAdresDetail").value;
+	console.log(empAdresDetail);
+	
+	let extensionMypage = document.getElementById("extensionMypage").value;
+	console.log(extensionMypage);
+	let empTelnoMypage = document.getElementById("empTelnoMypage").value;
+	console.log(empTelnoMypage);
+	let emailMypage = document.getElementById("emailMypage").value;
+	console.log(emailMypage);
+	
+	if(pwMypage != pwReMypage){
+		 Swal.fire({
+	      icon: 'error',
+	      title: '비밀번호 오류',
+	      text: '비밀번호를 다시 한번 확인해주세요.',
+	    });
+	}else{
+		const Toast = Swal.mixin({
+	      toast: true,
+	      position: 'center-center',
+	      showConfirmButton: false,
+	      timer: 3000,
+	      timerProgressBar: true,
+	      didOpen: (toast) => {
+	        toast.addEventListener('mouseenter', Swal.stopTimer)
+	        toast.addEventListener('mouseleave', Swal.resumeTimer)
+	      }
+	    })
+
+		$.ajax({
+			type:"PUT",
+			url:"/mypage",
+			contentType: "application/json",
+			dataType: 'json',
+			success:function(res){
+				console.log("1")
+				console.log(res);
+			},
+			error: function(request, status, error) {
+			console.log("code: " + request.status)
+			console.log("message: " + request.responseText)
+			console.log("error: " + error);
+		}
+		});
+	
+	    Toast.fire({
+	      icon: 'success',
+	      title: '회원 정보가 정상적으로 수정되었습니다.'
+	    })
+	}
+	
+}
+
+function cancellMypage(){
+	console.log("22")
+	location.reload();
+}

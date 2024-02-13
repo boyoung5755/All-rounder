@@ -1,0 +1,13 @@
+@charset "UTF-8";
+
+.resized-image {
+    width: 100%;
+    height: auto;
+}
+#updateMypage{
+	width: 70px;
+}
+#qrcode{
+	width: 200px;
+	height: 63px;
+}

@@ -1,0 +1,52 @@
+package kr.or.ddit.groupware.board.event.service;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.common.enumpkg.ServiceResult;
+import kr.or.ddit.groupware.board.event.dao.EventBoardDAO;
+import kr.or.ddit.vo.groupware.BoardVO;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * @author 작성자명
+ * @since 2023. 11. 20.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet 
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일       	수정자         수정내용
+ * --------     	--------    ----------------------
+ * 2023. 11. 20.      김보영         최초작성
+ * 2023. 11. 25.      김보영         등록
+ * Copyright (c) 2023 by DDIT All right reserved
+ * </pre>
+ */
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class EventBoardServiceImpl implements EventBoardService{
+	
+	private final EventBoardDAO dao;
+
+	@Override
+	public ServiceResult createEventBoard(BoardVO bVO) {
+		
+		int rowcnt = dao.insertEventBoard(bVO);
+		
+		ServiceResult result = null;
+		
+		if(rowcnt >=1) {
+			result = ServiceResult.OK;
+			log.info("등록성공");
+		}else {
+			result = ServiceResult.FAIL;
+			log.info("등록실패");
+		}
+		return result;
+	}
+
+	
+
+}

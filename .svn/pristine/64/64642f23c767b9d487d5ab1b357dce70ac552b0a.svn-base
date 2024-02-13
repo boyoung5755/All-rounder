@@ -1,0 +1,41 @@
+package kr.or.ddit.groupware.reservation.vehicle.controller;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import kr.or.ddit.groupware.reservation.vehicle.service.VehicleService;
+
+/**
+ * @author 작성자명
+ * @since 2023. 11. 7.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet 
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2023. 11. 7.      박민주       최초작성
+ * Copyright (c) 2023 by DDIT All right reserved
+ * </pre>
+ */
+
+
+@Controller
+@RequestMapping("/vehicle")
+public class VehicleController {
+	
+	@Inject
+	private VehicleService service;
+	
+	/*
+		/vehicle (get) : 전체 차량 조회
+		/vehicle/V001 (get) : V001 차량정보조회
+		/vehicle (post) : 신규차량등록
+		/vehicle/V001 (put) : V001 차량정보 수정
+		/vehicle/V001 (delete) : V001 차량 삭제 		 
+	*/
+	
+}

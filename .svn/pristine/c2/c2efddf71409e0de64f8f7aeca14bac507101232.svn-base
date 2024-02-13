@@ -1,0 +1,89 @@
+package kr.or.ddit.messenger.service;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import kr.or.ddit.login.dao.LoginDAO;
+import kr.or.ddit.messenger.dao.MessengerDAO;
+import kr.or.ddit.vo.ChatParticipantVO;
+import kr.or.ddit.vo.ChatRoomVO;
+import kr.or.ddit.vo.groupware.EmployeeVO;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * @author 작성자명
+ * @since 2023. 11. 6.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * 
+ *      <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일      	 수정자       수정내용
+ * --------     --------    ----------------------
+ * 2023. 11. 6.   박민주     최초작성
+ * 2023. 11. 18.  박민주	   채팅방관련 CRUD 메소드 추가
+ * Copyright (c) 2023 by DDIT All right reserved
+ *      </pre>
+ */
+@Service
+@Slf4j
+public class MessengerServiceImpl implements MessengerService {
+
+	@Inject
+	private MessengerDAO dao;
+	
+	@Inject
+	private LoginDAO loginDao;
+
+	@Override
+	public List<ChatParticipantVO> retrieveChatRoomList(){
+		String senderCd = SecurityContextHolder.getContext().getAuthentication().getName(); // 사원번호
+		return dao.selectChatList(senderCd);
+	}
+
+	@Override
+	@Transactional
+	public void createChatRoom(List<ChatParticipantVO> chatParticipantList) {
+		
+		StringBuffer stringBuilder = new StringBuffer();
+		for(ChatParticipantVO chatParticipant : chatParticipantList) {
+			String empCd = chatParticipant.getChatEmpCd();
+			if(!empCd.equals(SecurityContextHolder.getContext().getAuthentication().getName())) {
+				EmployeeVO employee = new EmployeeVO();
+				employee.setEmpCd(empCd);
+				employee = loginDao.selectEmpForAuth(employee);
+				String empName = employee.getEmpName();
+				stringBuilder.append(empName).append(", ");
+			}
+		}
+		
+		String chatRoomNm = stringBuilder.toString();
+		
+		log.info("채팅방 이름 전 ====> " + chatRoomNm);
+		chatRoomNm = chatRoomNm.substring(0, chatRoomNm.length()-2);
+		log.info("채팅방 이름 후 ====> " + chatRoomNm);
+		
+		String chatRoomCd = dao.selectNewChatSeq();
+		for(ChatParticipantVO chatParticipant : chatParticipantList) {
+			//처음 채팅방 이름은 이름을 나열한 형태로
+			chatParticipant.setChatRoomNm(chatRoomNm);
+			chatParticipant.setChatRoomCd(chatRoomCd);
+			dao.insertChatParticipant(chatParticipant);
+		}
+	}
+
+	@Override
+	public int modifyChatRoom(ChatParticipantVO chatParticipantVO) {
+		return dao.updateChatRoom(chatParticipantVO);
+	}
+
+	@Override
+	public int removeChatRoom(ChatParticipantVO chatParticipantVO) {
+		return dao.deleteChatRoom(chatParticipantVO);
+	}
+}

@@ -1,0 +1,159 @@
+/**
+ * <pre>
+ * 
+ * </pre>
+ * @author 박민주
+ * @since 2023. 11. 12.
+ * @version 1.0
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일        수정자       수정내용
+ * --------     --------    ----------------------
+ * 2023. 11. 12.      박민주    최초작성
+ * 2023. 11. 13.      박민주	sendForm 구현 완료
+ * 2023. 11. 14.	  박민주	첨부파일 전송 위해 sendForm 수정
+ * 2023. 11. 15.      박민주		
+ * 2023. 11. 16.
+ * 2023. 12. 01		  박민주    (전체) 수정 중
+ * Copyright (c) 2023 by DDIT All right reserved
+ * </pre>
+ */
+
+// 날짜 형식 formatting : 문자열 형태의 date 객체 -> '1997-01-25' 형식으로 formatting 
+function changeDateFormat (dateText){
+	return moment(dateText).format('YYYY-MM-DD');
+}
+
+//메일 리스트 태그 만들기 함수
+function makeMailLiTag (resp){
+	let dataList = resp.paging.dataList; 
+	let liTag = "";
+
+	if (dataList.length == 0) { //메일 내역이 없는 경우
+		liTag += `
+			<li> 메일함이 비었습니다.</li>
+		`;
+	}else{ // 메일 내역이 존재하는 경우
+		for (var i = 0; i < dataList.length; i++) {
+			let dateText = dataList[i].mailTrnsmisDt; //메일 발송 날짜
+			let formattedDate = changeDateFormat(dateText);
+			
+			// <li data-mailBoxType="${mailBoxType}" style="z-index:-5" data-value="${dataList[i].mailCd}" class="email-list-item email-marked-read"
+	
+			liTag += `
+					<li style="z-index:-5" data-value="${dataList[i].mailCd}" class="email-list-item email-marked-read"
+						data-starred="true" data-bs-toggle="sidebar" data-target="#app-email-view">
+						<div class="d-flex align-items-center">
+							<div class="form-check">
+								<input class="email-list-item-input form-check-input" type="checkbox" id="email-1" />
+								<label class="form-check-label" for="email-1"></label>
+							</div>
+							<i id="starBtn" class="email-list-item-bookmark bx bx-star d-sm-inline-block d-none cursor-pointer mx-4 bx-sm"></i>
+							<img src="${dataList[i].senderVO.empProfileImg}" alt="user-avatar" class="d-block flex-shrink-0 rounded-circle me-sm-3 me-0" height="32" width="32" />
+							<div class="email-list-item-content ms-2 ms-sm-0 me-2">
+								<span class="email-list-item-username me-2 h6">${dataList[i].mailSj}</span>
+								<span class="email-list-item-subject d-xl-inline-block d-block" id="mailCnText">
+									[${dataList[i].senderVO.dept.deptName}/${dataList[i].senderVO.common.commonCodeSj}] ${dataList[i].senderVO.empName}
+								</span>
+							</div>
+							<div class="email-list-item-meta ms-auto d-flex align-items-center">
+								<small style="width:80px;" class="email-list-item-time text-muted">${formattedDate}</small>
+								<ul class="list-inline email-list-item-actions">
+									<li class="list-inline-item email-delete" data-btnId="delBtn" data-value="${dataList[i].mailCd}"><i class="bx bx-trash-alt fs-4"></i></li>
+									<li class="list-inline-item email-unread"><i class="bx bx-envelope fs-4"></i></li>
+									<li class="list-inline-item"><i class="bx bx-error-circle fs-4"></i></li>
+								</ul>
+							</div>
+						</div>
+					</li>`;
+								}
+								// <li class="list-inline-item email-delete" data-btnId="delBtn" data-value="${dataList[i].mailCd}" data-mailBoxType="${mailBoxType}"><i class="bx bx-trash-alt fs-4"></i></li>
+	}
+	return liTag;
+}
+
+//페이징 처리
+function fn_paging(page){
+	getMailDataList(page);
+}
+
+//페이지 a 태그 클릭 시 이벤트 막기
+$(document).on("click", ".page-link", function(e) {
+    e.preventDefault();
+});
+
+//메일 목록 조회 함수 : 1) DomContentLoaded 이벤트로 로딩 직후 실행, 2) 받은메일함 클릭시 실행
+function getMailDataList(page){
+	console.log("해당 메일함 ==> " + targetArea);
+	let urlDetail = "receptionMail";
+	switch(targetArea){
+		case "inbox":
+			urlDetail = "receptionMail";
+			break;
+		case "sent":
+			urlDetail = "sentMail"
+			break;
+		case "draft":
+			console.log("임시메일함");
+			break;
+			// url = "/mail/mail"
+		case "starred":
+			console.log("중요메일함");
+			break;
+			// url = "/mail/mail"
+		default: //휴지통
+			console.log("휴지통");
+			break;
+			// url = "/mail/mail"
+	}
+	
+	$("#mailUl").empty();
+	$("#paginationArea").empty();
+    $.ajax({
+        type: "GET",
+        url : `/mail/${urlDetail}`,
+        contentType : "application/json; charset=utf-8",
+		data: {page : page},
+		dataType : "JSON",
+        success : function(resp){
+			console.log(JSON.stringify(resp));
+			let liTags = makeMailLiTag(resp);
+			$("#mailUl").append(liTags);
+			$("#paginationArea").append(resp.paging.pagingHTML);
+			$("#receptionMailBoxCount").text(resp.paging.totalRecord);
+        },
+        error : function(xhr){
+            console.log("수신 메일 리스트 못가져옴 ! " + xhr);
+        }
+    })
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+//DomContentLoaded 이벤트
+$(function () {
+    getMailDataList(1); //수신메일 목록 조회 함수
+});
+
+let targetArea = ""; //메일함 클릭 시 마다 해당 메일함 분류가 전역변수(targetArea)에 들어감
+
+//받은메일함 클릭 시
+$("li[data-target='inbox']").on("click", function(){
+	targetArea= "inbox";
+	getMailDataList(1);
+});
+//보낸메일함 클릭 
+$("li[data-target='sent']").on("click", function(){
+	targetArea= "sent";
+	getMailDataList(1);
+});
+$("li[data-target='draft']").on("click", function(){
+	alert("임메");
+	alert(targetArea + "여기는 임메");
+});
+$("li[data-target='starred']").on("click", function(){
+	alert("중메");
+});
+$("li[data-target='trash']").on("click", function(){
+	alert("휴메");
+});

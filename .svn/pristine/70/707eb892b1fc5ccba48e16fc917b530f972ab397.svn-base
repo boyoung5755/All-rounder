@@ -1,0 +1,33 @@
+/**
+ * <pre>
+ * 
+ * </pre>
+ * @author 박민주
+ * @since 2023. 11. 28.
+ * @version 1.0
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일        수정자       수정내용
+ * --------     --------    ----------------------
+ * 2023. 11. 28.  박민주       최초작성 
+ * Copyright (c) 2023 by DDIT All right reserved
+ * </pre>
+ */ 
+
+const columnDefs = [
+	{checkboxSelection : true, headerCheckboxSelection: true},
+	{ field: "confRoomCd", headerName: "회의실 코드",sortable: true },
+	{ field: "confRoomNm", headerName: "회의실 이름", editable: true,sortable: true},
+	{ field: "confRoomCapacity", headerName: "회의실 수용인원" ,editable: true},
+	{ field: "confYn", headerName: "회의실 사용가능 상태 여부", editable: true },
+	// { field: "vhcleImgUrl", headerName:"모델"},
+];
+
+$(function () {
+	// var confRoomList = document.querySelector("#confRoomList");
+	
+	//var confRoomList = document.querySelector("#confRoomList");
+	//new agGrid.Grid(confRoomList, gridOptions);
+	//getDataConfRoom();  // 데이터 불러오깅
+	
+});

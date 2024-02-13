@@ -1,0 +1,17 @@
+package kr.or.ddit.groupware.sanction.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("/sanction")
+public class SanctionListController {
+	
+	@GetMapping
+	public String sanctionDocList() {
+		// 로그인한 직원이 기안한 모든 결재문서 list 조회
+		return "sanctiondoc/sanctiondocList";
+	}
+
+}

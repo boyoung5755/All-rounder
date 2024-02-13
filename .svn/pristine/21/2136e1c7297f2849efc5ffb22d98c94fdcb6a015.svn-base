@@ -1,0 +1,45 @@
+package kr.or.ddit.groupware.reservation.vehicle.service;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.CommonVO;
+import kr.or.ddit.vo.PaginationInfo;
+import kr.or.ddit.vo.groupware.VehicleReservationVO;
+
+public interface VehicleService {
+	List<CommonVO> retrieveCommonVReserveTimeCdList();
+	
+	List<VehicleReservationVO> retrieveVehicleReservationList();
+	
+	/**
+	 * 로그인한 본인의 차량예약내역 조회
+	 * @param PaginationInfo
+	 * @return
+	 */
+	List<VehicleReservationVO> retrieveMyVehicleReservationList(PaginationInfo<VehicleReservationVO> paging);
+	
+	List<VehicleReservationVO> retrieveSpecificVehicleReservationList(Map<String, String> rangeAndCd);
+
+	/**
+	 * 특정 차량의 전체 예약 내역 조회
+	 * @param vhcleCd
+	 * @return
+	 */
+	List<VehicleReservationVO> retrieveSimpleReservationList(String vhcleCd);
+	
+	/**
+	 * 새로운 예약을 등록함
+	 * 1) VehicleReservation 테이블에 insert (insertVehicleReservation(VehicleReservationVO reservation))
+	 * 2) 예약시간 테이블에 insert (insertReservationTime(ReservationTimeVO rTime))
+	 * @param reservation
+	 * @return
+	 * @throws Exception 
+	 * @throws Exception 
+	 */
+	void createReservation(VehicleReservationVO reservation) throws Exception, Exception;
+	
+	int modifyReservation(VehicleReservationVO reservation);
+	
+	int removeReservation(String vhcleReserveCd);
+}

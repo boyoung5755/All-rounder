@@ -1,0 +1,58 @@
+package kr.or.ddit.admin.analysis.service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.admin.analysis.dao.AnalysisDAO;
+import kr.or.ddit.vo.groupware.EmployeeVO;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * @author 작성자명
+ * @since Dec 4, 2023
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet 
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * Dec 4, 2023     송석원       부서 인원 지표분석
+ * Dec 5, 2023     송석원       직급별 직원 분포도
+ * Copyright (c) 2023 by DDIT All right reserved
+ * </pre>
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class AnalysisServiceImpl implements AnalysisService {
+	
+	private final AnalysisDAO analysisDAO;
+
+
+
+	/**
+	 *부서별 인원 지표분석
+	 */
+	@Override
+	public List<EmployeeVO> emphavedept() {
+		return analysisDAO.emphavedept();
+	}
+
+
+
+	/**
+	 *직급별 직원 분포도
+	 */
+	@Override
+	public List<EmployeeVO> emphaverank() {
+		return analysisDAO.emphaverank();
+	} 
+
+
+
+	
+	
+
+}

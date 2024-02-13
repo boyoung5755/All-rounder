@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="kr.or.ddit.admin.analysis.dao.AnalysisDAO">
+	
+	<resultMap type="EmployeeVO" id="empMap" autoMapping="true">
+		<id property="empCd" column="EMP_CD"	/> 
+	<association property="dept" javaType="DeptVO" autoMapping="true">
+		<id property="deptCd" column="DEPT_CD" />
+	</association>
+	</resultMap>
+	
+	
+	
+	<select id="emphavedept" resultMap="empMap" parameterType="EmployeeVO"> 
+	SELECT
+	    D.DEPT_NAME,
+	    COUNT(*) AS DEPT_COUNT
+	FROM
+	    EMPLOYEE E
+	JOIN
+	    DEPT D ON D.DEPT_CD = E.DEPT_CD
+	WHERE
+	    E.EMP_LOGIN_FLAG NOT IN ('L', 'Y')
+	AND E.DEPT_CD NOT IN ('DEPT_01','DEPT_010')
+	GROUP BY
+	    D.DEPT_NAME
+	</select> 
+	
+	
+	
+	
+	
+	
+	  
+</mapper>

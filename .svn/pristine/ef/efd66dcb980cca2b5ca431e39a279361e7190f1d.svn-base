@@ -1,0 +1,87 @@
+/**
+ * <pre>
+ * 
+ * </pre>
+ * @author 작성자명
+ * @since 2023. 11. 25.
+ * @version 1.0
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일        	수정자       수정내용
+ * --------     	--------    ----------------------
+ * 2023. 11. 25.    김보영       최초작성
+ * 2023. 11. 25.    김보영       등록
+ * Copyright (c) 2023 by DDIT All right reserved
+ * </pre>
+ */ 
+
+ // 종일 체크 박스를 클릭했을 때 시작일과 종료일을 동기화하는 함수
+  function syncAllDay() {
+    var allDayCheckbox = document.getElementById('allDay');
+    var startDateInput = document.getElementById('eventBdate');
+    var endDateInput = document.getElementById('eventEdate');
+
+    // 종일 체크 박스가 체크되었을 때
+    if (allDayCheckbox.checked) {
+      // 시작일과 종료일을 동일하게 설정
+      endDateInput.value = startDateInput.value;
+    }
+  }
+
+  // 종일 체크 박스의 상태에 따라 이벤트를 추가
+  document.getElementById('allDay').addEventListener('change', syncAllDay);
+
+
+
+//경조사게시판 등록 비동기
+
+function fn_insertEvent(){
+
+	//저장확인모달창
+	fn_swalConfirm("글을 등록하시겠습니까?", function(){
+		//비동기
+		var data = new FormData($("#formEvent")[0]);
+		var bbsCn = CKEDITOR.instances.bbsCn.getData();
+		data.append("bbsCn", bbsCn);
+
+		$.ajax({
+			type: "POST",
+			enctype: 'multipart/form-data',
+			url: "/event/insert",
+			data: data,
+			processData: false,
+			contentType: false,
+			cache: false,
+			success: function (data) {
+				var text;
+				var icon;
+				if (data.success == "Y") {
+					text = "등록이 완료되었습니다.";
+					icon = "success";
+				} else {
+					text = "등록이 실패되었습니다.";
+					icon = "warning";
+				}
+				//모달창열기
+				fn_swalComplete(text, icon, "/event/home", data.success);
+			},
+			error: function () {
+				fn_swalError();
+			}
+		});
+	});
+
+
+}
+
+
+
+
+
+//이벤트 등록폼 
+function fn_eventForm(){
+	
+	location.href ='/event/form';
+}
+
+

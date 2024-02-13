@@ -1,0 +1,55 @@
+package kr.or.ddit.groupware.reservation.vehicle.service;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.groupware.reservation.vehicle.dao.VehicleDAO;
+import kr.or.ddit.vo.CommonVO;
+import kr.or.ddit.vo.groupware.VehicleReservationVO;
+
+@Service
+public class VehicleServiceImpl implements VehicleService{
+
+	@Inject
+	private VehicleDAO dao;
+	
+	@Override
+	public List<CommonVO> retrieveCommonVReserveTimeCdList() {
+		List<CommonVO> timeCdList = dao.selectCommonVReserveTimeCdList();
+		return timeCdList;
+	}
+
+	@Override
+	public List<VehicleReservationVO> retrieveVehicleReservationList() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<VehicleReservationVO> retrieveMyVehicleReservationList(String empCd) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public int createReservation(VehicleReservationVO reservation) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int modifyReservation(VehicleReservationVO reservation) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int removeReservation(String vhcleReserveCd) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+}

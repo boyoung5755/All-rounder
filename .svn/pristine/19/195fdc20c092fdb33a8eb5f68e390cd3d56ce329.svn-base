@@ -1,0 +1,87 @@
+package kr.or.ddit.groupware.reservation.vehicle.service;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+import javax.transaction.Transactional;
+
+import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import kr.or.ddit.groupware.reservation.vehicle.dao.VehicleDAO;
+import kr.or.ddit.vo.CommonVO;
+import kr.or.ddit.vo.groupware.ReservationTimeVO;
+import kr.or.ddit.vo.groupware.VehicleReservationVO;
+
+@Service
+public class VehicleServiceImpl implements VehicleService{
+
+	@Inject
+	private VehicleDAO dao;
+	
+	@Override
+	public List<CommonVO> retrieveCommonVReserveTimeCdList() {
+		List<CommonVO> timeCdList = dao.selectCommonVReserveTimeCdList();
+		return timeCdList;
+	}
+
+	@Override
+	public List<VehicleReservationVO> retrieveVehicleReservationList() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<VehicleReservationVO> retrieveMyVehicleReservationList(String empCd) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	@Transactional
+	public void createReservation(VehicleReservationVO reservation) throws Exception {
+		String vhcleUseTimeCd = reservation.getVhcleUseTimeCd(); // 문자열 형태 배열
+	    ObjectMapper objectMapper = new ObjectMapper();
+	        // 문자열을 배열로 변환
+	        String[] array = objectMapper.readValue(vhcleUseTimeCd, String[].class);
+	        List<String> list = Arrays.asList(array); // 배열을 리스트로 변환
+	        
+	        dao.insertVehicleReservation(reservation);
+	        for(String cdStr : list) {
+	        	ReservationTimeVO reservationTimeVO = new ReservationTimeVO();
+	        	reservationTimeVO.setUseTimeCd(cdStr);
+	        	dao.insertReservationTime(reservationTimeVO);
+	        }
+	}
+
+	@Override
+	public int modifyReservation(VehicleReservationVO reservation) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int removeReservation(String vhcleReserveCd) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public List<VehicleReservationVO> retrieveSpecificVehicleReservationList(Map<String, String> rangeAndCd) {
+		
+		
+		
+		return dao.selectOneVehicleReservationList(rangeAndCd);
+	}
+
+	@Override
+	public List<VehicleReservationVO> retrieveSimpleReservationList(String vhcleCd) {
+		return 	dao.selectSimpleReservationList(vhcleCd);
+	}
+
+}
