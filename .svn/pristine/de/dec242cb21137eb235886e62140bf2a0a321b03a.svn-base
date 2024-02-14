@@ -1,9 +1,0 @@
-package kr.or.ddit.groupware.gdash.service;
-
-import kr.or.ddit.vo.groupware.EmployeeVO;
-
-public interface DashBoardService {
-
-	EmployeeVO selectEmpForAuth(EmployeeVO empVO);
-
-}

@@ -1,8 +1,0 @@
-package kr.or.ddit.groupware.reservation.confroom.service;
-
-import org.springframework.stereotype.Service;
-
-@Service
-public class ConfRoomServiceImpl implements ConfRoomService{
-
-}

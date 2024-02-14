@@ -1,5 +1,0 @@
-package kr.or.ddit.groupware.reservation.confroom.service;
-
-public interface ConfRoomService{
-
-}
